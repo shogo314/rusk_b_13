@@ -24,7 +24,12 @@ pub(super) fn arguments(
 }
 
 pub(super) fn prelude(context: &Context) -> String {
-    if context.functions.iter().all(|f| f.captures.is_empty()) {
+    if !context.functions.iter().any(|f| f.native_entry.is_some())
+        && !context
+            .native_requests
+            .targets()
+            .any(|id| !context.functions[id].captures.is_empty())
+    {
         return String::new();
     }
     r#"

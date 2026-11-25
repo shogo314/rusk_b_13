@@ -116,7 +116,8 @@ pub struct Compiler {
     native_type_bindings: BTreeMap<String, externs::native_types::Binding>,
     native_type_dependencies: BTreeMap<String, BTreeSet<String>>,
     rendering_native_types: Vec<String>,
-    native_type_prelude: String,
+    native_type_prelude: Vec<(externs::native_types::Declaration, String)>,
+    native_function_types: BTreeMap<usize, BTreeSet<String>>,
     generic_records: BTreeMap<String, generics::GenericRecord>,
     generic_functions: Vec<generics::GenericFunction>,
     generic_instances: BTreeMap<(usize, Vec<String>), usize>,
@@ -124,7 +125,9 @@ pub struct Compiler {
     implicit_calls: BTreeSet<String>,
     functions: Vec<Function>,
     native_info: BTreeMap<usize, native_info::NativeFunctionInfo>,
-    native_requests: crate::native::NativeRequests,
+    native_effect_queries: BTreeSet<(usize, crate::analysis::effects::Query)>,
+    native_function_requests: BTreeMap<usize, crate::native::NativeRequests>,
+    native_type_requests: BTreeMap<String, crate::native::NativeRequests>,
     native_types: BTreeMap<String, type_metadata::Metadata>,
     symbols: BTreeMap<String, symbols::Symbol>,
     symbol_order: Vec<String>,
@@ -199,8 +202,9 @@ impl Compiler {
             return Ok(format!("{lir:#?}\n"));
         }
         let _stage = enter(Stage::Cpp);
-        let output = crate::backend::emit_program(&lir, &self.cpp_context(), !self.no_optimization);
-        Ok(self.finalize_native_references(&output))
+        let context = self.cpp_context(&lir);
+        let output = crate::backend::emit_program(&lir, &context, !self.no_optimization);
+        Ok(self.finalize_native_references(&output, &context.native_requests))
     }
     fn compile_function(&mut self, index: usize) -> Result<(), String> {
         if self.functions[index].checked.is_some() {

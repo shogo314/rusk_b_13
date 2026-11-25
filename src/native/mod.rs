@@ -16,3 +16,26 @@ pub(crate) struct NativeRequests {
     pub(crate) effects: BTreeSet<(usize, crate::analysis::effects::Query)>,
     pub(crate) unit_bridges: BTreeSet<(usize, abi::UnitBridge)>,
 }
+
+impl NativeRequests {
+    pub(crate) fn targets(&self) -> impl Iterator<Item = usize> + '_ {
+        self.direct
+            .iter()
+            .map(|&(id, _)| id)
+            .chain(self.declarations.iter().copied())
+            .chain(self.values.iter().copied())
+            .chain(self.owned.iter().copied())
+            .chain(self.rooted.iter().copied())
+            .chain(self.unit_bridges.iter().map(|&(id, _)| id))
+    }
+
+    pub(crate) fn extend(&mut self, other: &Self) {
+        self.direct.extend(&other.direct);
+        self.declarations.extend(&other.declarations);
+        self.values.extend(&other.values);
+        self.owned.extend(&other.owned);
+        self.rooted.extend(&other.rooted);
+        self.effects.extend(&other.effects);
+        self.unit_bridges.extend(&other.unit_bridges);
+    }
+}

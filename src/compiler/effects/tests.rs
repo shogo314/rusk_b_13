@@ -318,9 +318,9 @@ fn backend_trust_uses_origin_instead_of_spelling() {
             origin,
         });
     }
-    let context = compiler.cpp_context();
-    assert!(!context.functions[0].trusted);
-    assert!(context.functions[1].trusted);
+    let functions = compiler.cpp_functions(&[true, true]);
+    assert!(!functions[0].trusted);
+    assert!(functions[1].trusted);
 }
 
 #[test]

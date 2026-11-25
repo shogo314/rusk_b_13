@@ -141,8 +141,7 @@ impl Compiler {
     pub(super) fn native_operation_needed(&self, index: usize) -> bool {
         self.used.contains(&index)
             || self
-                .native_requests
-                .effects
+                .native_effect_queries
                 .iter()
                 .any(|(id, _)| *id == index)
     }
@@ -154,9 +153,7 @@ impl Compiler {
         index: usize,
         span: &Span,
     ) -> Result<String, String> {
-        self.native_requests
-            .effects
-            .insert((index, crate::analysis::effects::Query::Writes));
+        self.request_native_effect(Some(index), index, crate::analysis::effects::Query::Writes);
         let code = self.render_native_derivation(kind, ty, index, "deep_copy", span)?;
         let dependencies = self.native_dependencies(index).cloned().unwrap_or_default();
         self.set_derived_copy_dependencies(index, ty, dependencies)?;

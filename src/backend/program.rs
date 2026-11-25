@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 pub(crate) struct Context {
     pub types: BTreeMap<String, String>,
     pub functions: Vec<FunctionInfo>,
+    pub reachable: Vec<bool>,
     pub prelude: String,
     pub concrete_foreign_definitions: Vec<String>,
     pub foreign_definitions: Vec<String>,
@@ -49,7 +50,7 @@ pub(crate) fn emit(program: &Program, context: &Context, optimize: bool) -> Stri
     out += &context.prelude;
     out += &super::native_environments::prelude(context);
     for f in &program.functions {
-        if f.body.is_some()
+        if (context.reachable[f.id] && f.body.is_some())
             || context.native_requests.declarations.contains(&f.id)
             || context.functions[f.id].native_entry.is_some()
         {
@@ -277,7 +278,9 @@ pub(crate) fn emit(program: &Program, context: &Context, optimize: bool) -> Stri
         out += "\n";
     }
     for f in &program.functions {
-        if let Some(body) = &f.body {
+        if context.reachable[f.id]
+            && let Some(body) = &f.body
+        {
             out += &format!(
                 "// Rusk function {}: {}\n{} {{\n{}\n}}\n",
                 f.id,

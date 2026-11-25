@@ -65,12 +65,14 @@ impl Compiler {
             .name(index)
         }
     }
-    pub(super) fn abi_reference(&mut self, index: usize, object: bool) -> String {
-        self.native_requests.direct.insert((index, object));
+    fn abi_reference(&mut self, owner: Option<usize>, index: usize, object: bool) -> String {
+        self.native_requests_for(owner)
+            .direct
+            .insert((index, object));
         if access_types::underlying(&self.functions[index].result) == "Unit"
             && object != self.native_unit_object(index)
         {
-            self.native_requests.unit_bridges.insert((
+            self.native_requests_for(owner).unit_bridges.insert((
                 index,
                 if object {
                     crate::native::abi::UnitBridge::Box
@@ -81,7 +83,7 @@ impl Compiler {
             if self.functions[index].body.is_none()
                 && template::identifier(&self.functions[index].cpp)
             {
-                self.native_requests.declarations.insert(index);
+                self.native_requests_for(owner).declarations.insert(index);
             }
         }
         format!("rusk_pending_reference_{index}_{object}__")
@@ -821,6 +823,20 @@ impl Compiler {
         template::expand_arguments(&patterns, actual, budget).map_err(|e| span.error(e))
     }
 
+    fn record_native_cpp_type(&mut self, owner: Option<usize>, ty: &str) {
+        if let Some(id) = owner {
+            self.native_function_types
+                .entry(id)
+                .or_default()
+                .insert(ty.into());
+        } else if let Some(current) = self.rendering_native_types.last() {
+            self.native_type_dependencies
+                .entry(current.clone())
+                .or_default()
+                .insert(ty.into());
+        }
+    }
+
     fn render_native_parts(
         &mut self,
         parts: Vec<Part>,
@@ -1063,15 +1079,7 @@ impl Compiler {
                         text: ty.clone(),
                         span: span.clone(),
                     })?;
-                    if owner.is_none()
-                        && function.is_none()
-                        && let Some(current) = self.rendering_native_types.last()
-                    {
-                        self.native_type_dependencies
-                            .entry(current.clone())
-                            .or_default()
-                            .insert(ty.clone());
-                    }
+                    self.record_native_cpp_type(owner, &ty);
                     output.push_str(&self.types[&ty]);
                 }
                 Part::NonUnitType(ty) => {
@@ -1081,6 +1089,7 @@ impl Compiler {
                         text: ty.clone(),
                         span: span.clone(),
                     })?;
+                    self.record_native_cpp_type(owner, &ty);
                     if access_types::underlying(&ty) == "Unit" {
                         return Err(span.error(
                             "native nonunit reference requires a value type other than Unit",
@@ -1095,6 +1104,7 @@ impl Compiler {
                         text: ty.clone(),
                         span: span.clone(),
                     })?;
+                    self.record_native_cpp_type(owner, &ty);
                     output.push_str(&if access_types::underlying(&ty) == "Unit" {
                         "void".into()
                     } else {
@@ -1108,6 +1118,7 @@ impl Compiler {
                         text: ty.clone(),
                         span: span.clone(),
                     })?;
+                    self.record_native_cpp_type(owner, &ty);
                     output.push_str(&format!(
                         "rusk_finish_return<{},{}>",
                         self.types[&ty],
@@ -1143,9 +1154,11 @@ impl Compiler {
                     )?;
                     self.used.insert(callback.function);
                     if matches!(kind, template::InvokeKind::Writes) {
-                        self.native_requests
-                            .effects
-                            .insert((callback.function, crate::analysis::effects::Query::Writes));
+                        self.request_native_effect(
+                            owner,
+                            callback.function,
+                            crate::analysis::effects::Query::Writes,
+                        );
                         output.push_str(&format!("rusk_writes_{}", callback.function));
                     } else {
                         for (parameter, ty) in arguments.iter().enumerate() {
@@ -1165,6 +1178,7 @@ impl Compiler {
                             )?;
                         }
                         output.push_str(&self.abi_reference(
+                            owner,
                             callback.function,
                             matches!(kind, template::InvokeKind::Boxed),
                         ));
@@ -1223,7 +1237,7 @@ impl Compiler {
                     if let template::CallKind::Effect(query) = kind {
                         // A semantic query does not call or take the address of
                         // a native definition, so it needs no target prototype.
-                        self.native_requests.effects.insert((index, query));
+                        self.request_native_effect(owner, index, query);
                         output.push_str(&format!("rusk_{}_{index}", query.name()));
                         continue;
                     }
@@ -1241,7 +1255,7 @@ impl Compiler {
                     if self.functions[index].body.is_none()
                         && template::identifier(&self.functions[index].cpp)
                     {
-                        self.native_requests.declarations.insert(index);
+                        self.native_requests_for(owner).declarations.insert(index);
                     }
                     for (parameter, value) in values.iter().enumerate() {
                         self.readonly_native_uses.insert((
@@ -1260,24 +1274,24 @@ impl Compiler {
                             unreachable!("effect query handled above: {query:?}");
                         }
                         template::CallKind::Value => {
-                            self.native_requests.values.insert(index);
+                            self.native_requests_for(owner).values.insert(index);
                             output.push_str(&format!("rusk_value_ref_{index}"));
                         }
                         template::CallKind::Rooted => {
-                            self.native_requests.rooted.insert(index);
-                            self.abi_reference(index, true);
+                            self.native_requests_for(owner).rooted.insert(index);
+                            self.abi_reference(owner, index, true);
                             output.push_str(&format!("rusk_rooted_ref_{index}"));
                         }
                         template::CallKind::Object => {
-                            self.native_requests.owned.insert(index);
-                            self.abi_reference(index, true);
+                            self.native_requests_for(owner).owned.insert(index);
+                            self.abi_reference(owner, index, true);
                             output.push_str(&format!("rusk_owned_ref_{index}"));
                         }
                         template::CallKind::Owned => {
-                            output.push_str(&self.abi_reference(index, false));
+                            output.push_str(&self.abi_reference(owner, index, false));
                         }
                         template::CallKind::Boxed => {
-                            output.push_str(&self.abi_reference(index, true));
+                            output.push_str(&self.abi_reference(owner, index, true));
                         }
                     }
                 }

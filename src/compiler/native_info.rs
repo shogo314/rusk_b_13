@@ -15,6 +15,33 @@ pub(super) struct NativeFunctionInfo {
     pub(super) unit_object: bool,
 }
 impl Compiler {
+    pub(super) fn native_requests_for(
+        &mut self,
+        function: Option<usize>,
+    ) -> &mut crate::native::NativeRequests {
+        if let Some(id) = function {
+            self.native_function_requests.entry(id).or_default()
+        } else {
+            let ty = self
+                .rendering_native_types
+                .last()
+                .expect("native request owner");
+            self.native_type_requests.entry(ty.clone()).or_default()
+        }
+    }
+
+    pub(super) fn request_native_effect(
+        &mut self,
+        owner: Option<usize>,
+        target: usize,
+        query: crate::analysis::effects::Query,
+    ) {
+        self.native_effect_queries.insert((target, query));
+        self.native_requests_for(owner)
+            .effects
+            .insert((target, query));
+    }
+
     pub(super) fn compose_native_environment_contract(
         &self,
         id: usize,

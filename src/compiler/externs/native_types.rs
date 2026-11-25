@@ -13,7 +13,7 @@ pub(in crate::compiler) struct Binding {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-enum Declaration {
+pub(in crate::compiler) enum Declaration {
     Type(String),
     Value(usize),
 }
@@ -50,7 +50,7 @@ impl Compiler {
                 self.native_type_bindings.get_mut(&ty).unwrap().native = Some(native);
             }
         }
-        let mut output = String::new();
+        let mut output = Vec::new();
         let mut complete = BTreeSet::new();
         let mut visiting = BTreeSet::new();
         let mut budget = 16384;
@@ -105,7 +105,7 @@ impl Compiler {
         complete: &mut BTreeSet<Declaration>,
         visiting: &mut BTreeSet<Declaration>,
         budget: &mut usize,
-        output: &mut String,
+        output: &mut Vec<(Declaration, String)>,
     ) -> Result<(), String> {
         if *budget == 0 {
             return Err("native type dependency work limit exceeded".into());
@@ -173,14 +173,14 @@ impl Compiler {
                 output,
             )?;
         }
-        match node {
+        let code = match node {
             Declaration::Type(ty) => {
                 let binding = &self.native_type_bindings[ty];
-                output.push_str(&format!(
+                format!(
                     "using {}={};\n",
                     binding.alias,
                     binding.native.as_ref().expect("prepared native type")
-                ));
+                )
             }
             Declaration::Value(id) => {
                 let f = &self.functions[*id];
@@ -195,12 +195,10 @@ impl Compiler {
                     .map(|ty| format!("const Obj<{}>&", self.types[ty]))
                     .collect::<Vec<_>>();
                 params.push("Loc".into());
-                output.push_str(&format!(
-                    "{result} rusk_value_ref_{id}({});\n",
-                    params.join(",")
-                ));
+                format!("{result} rusk_value_ref_{id}({});\n", params.join(","))
             }
-        }
+        };
+        output.push((node.clone(), code));
         visiting.remove(node);
         complete.insert(node.clone());
         Ok(())

@@ -99,16 +99,21 @@ impl Compiler {
         Ok(())
     }
 
-    pub(super) fn record_forwards(&self) -> String {
+    pub(super) fn record_forwards(&self, types: &BTreeSet<&str>) -> String {
         self.records
             .keys()
+            .filter(|ty| types.contains(ty.as_str()))
             .map(|name| format!("struct {};\n", self.types[name]))
             .collect()
     }
 
-    pub(super) fn record_cpp(&self) -> String {
+    pub(super) fn record_cpp(&self, types: &BTreeSet<&str>) -> String {
         let mut code = String::new();
-        for (name, record) in &self.records {
+        for (name, record) in self
+            .records
+            .iter()
+            .filter(|(ty, _)| types.contains(ty.as_str()))
+        {
             let native = &self.types[name];
             code.push_str(&format!("struct {native} {{\n"));
             for (index, (_, ty)) in record.fields.iter().enumerate() {
@@ -116,7 +121,7 @@ impl Compiler {
             }
             code.push_str("};\n");
         }
-        for name in self.records.keys() {
+        for name in self.records.keys().filter(|ty| types.contains(ty.as_str())) {
             let native = &self.types[name];
             code.push_str(&format!("Obj<{native}> deep_copy(const Obj<{native}>& value, Loc loc = Loc{{\"<copy>\",0,0}});\n"));
         }
@@ -148,8 +153,12 @@ impl Compiler {
         Ok(())
     }
 
-    pub(super) fn record_copy_cpp(&self) -> String {
-        self.record_copies.values().cloned().collect()
+    pub(super) fn record_copy_cpp(&self, reachable: &[bool]) -> String {
+        self.record_copies
+            .iter()
+            .filter(|(ty, _)| reachable[self.record_copy_functions[*ty]])
+            .map(|(_, code)| code.as_str())
+            .collect()
     }
 
     pub(super) fn field(&self, ty: &str, name: &Name) -> Result<(usize, String), String> {

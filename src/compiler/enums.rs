@@ -303,15 +303,20 @@ impl Compiler {
         }
         Ok(())
     }
-    pub(super) fn enum_forwards(&self) -> String {
+    pub(super) fn enum_forwards(&self, types: &BTreeSet<&str>) -> String {
         self.enums
             .keys()
+            .filter(|ty| types.contains(ty.as_str()))
             .map(|ty| format!("struct {};\n", self.types[ty]))
             .collect()
     }
-    pub(super) fn enum_cpp(&self) -> String {
+    pub(super) fn enum_cpp(&self, types: &BTreeSet<&str>) -> String {
         let mut code = String::new();
-        for (ty, e) in &self.enums {
+        for (ty, e) in self
+            .enums
+            .iter()
+            .filter(|(ty, _)| types.contains(ty.as_str()))
+        {
             let native = &self.types[ty];
             code += &format!("struct {native}{{\n");
             for (index, (_, fields)) in e.variants.iter().enumerate() {
@@ -350,7 +355,11 @@ impl Compiler {
         }
         code
     }
-    pub(super) fn enum_copy_cpp(&self) -> String {
-        self.enum_copies.values().cloned().collect()
+    pub(super) fn enum_copy_cpp(&self, reachable: &[bool]) -> String {
+        self.enum_copies
+            .iter()
+            .filter(|(ty, _)| reachable[self.enum_copy_functions[*ty]])
+            .map(|(_, code)| code.as_str())
+            .collect()
     }
 }

@@ -149,3 +149,51 @@ wt identity(3), element(wrapped(4)), fresh(0), rebound(0), external(5);
         assert!(summary(&dump, "external").contains("write: Unknown"));
     }
 }
+
+#[test]
+fn cpp_omits_definitions_reached_only_from_unused_code() {
+    let case = Case::new(
+        r#"
+extern fn hidden(x:Int)->Int {
+    cpp_name:"test_hidden_native",
+    code:"Obj<std::int64_t> test_hidden_native(Obj<std::int64_t> x,Loc){return x;}",
+}
+enum HiddenEnum { Value(Int) }
+struct HiddenRecord { item: HiddenEnum; }
+fn idle(x:Int)->Int {
+    let item:=HiddenRecord{item:HiddenEnum::Value(hidden(x))};
+    return match item.item {Value(n)=>n,};
+}
+fn used(x:Int)->Int {return x+1;}
+wt used(41);
+"#,
+    );
+    let invalid = Case::new("fn idle()->Int{return \"wrong\";} wt 42;");
+    for options in [&[][..], &["--no-opt"][..]] {
+        let output = case.run_with_options("", options);
+        assert!(output.status.success());
+        assert_eq!(output.stdout, b"42\n");
+        let cpp = std::fs::read_to_string(case.0.join("main.cpp")).unwrap();
+        let (body, _) = cpp.split_once("\n// Rusk source: ").unwrap();
+        assert!(!body.contains(": idle\n"));
+        assert!(!body.contains("test_hidden_native"));
+        for prefix in ["struct RuskRecord", "struct RuskEnum"] {
+            assert!(
+                !body
+                    .lines()
+                    .any(|line| line.strip_prefix(prefix).is_some_and(|suffix| suffix
+                        .as_bytes()
+                        .first()
+                        .is_some_and(u8::is_ascii_digit)))
+            );
+        }
+        assert!(body.contains(": used\n"));
+
+        let output = invalid.compile_with_options(options);
+        assert!(!output.status.success());
+        assert!(
+            String::from_utf8_lossy(&output.stderr)
+                .contains("type mismatch: expected Int, found Str")
+        );
+    }
+}
