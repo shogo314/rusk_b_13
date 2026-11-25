@@ -32,6 +32,32 @@ fn equivalent_program(source: &str, expected: &str) {
 }
 
 #[test]
+fn concrete_extern_is_emitted_when_reached_through_a_function_value() {
+    let native = r#"extern fn probe(x:Int)->Int {
+        cpp_name:"audit_probe",
+        code:"Obj<std::int64_t> audit_probe(Obj<std::int64_t> x,Loc){return x;}",
+    }"#;
+    let unused = Case::new(native);
+    let used = Case::new(&format!(
+        "{native}\n{APPLY}\nfn forward(x:Int)->Int{{return probe(x);}} wt apply(forward,42);"
+    ));
+    for options in [&[][..], &["--no-opt"][..]] {
+        assert!(unused.compile_with_options(options).status.success());
+        let cpp = std::fs::read_to_string(unused.0.join("main.cpp")).unwrap();
+        let (body, _) = cpp.split_once("\n// Rusk source: ").unwrap();
+        assert!(!body.contains("audit_probe"));
+
+        let out = used.run_with_options("", options);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        assert_eq!(out.stdout, b"42\n");
+    }
+}
+
+#[test]
 fn native_callbacks_infer_signatures_and_preserve_capture_sharing_and_copying() {
     equivalent(
         r#"

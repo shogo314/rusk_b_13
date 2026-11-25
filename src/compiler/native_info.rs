@@ -1,7 +1,7 @@
 //! Per-function native semantics, separate from whole-program output requests.
 use super::*;
 use crate::analysis::effects::{Effect, Summary};
-use crate::native::{abi::UnitBridge, effects::composition::Dependency, lowering::Lowering};
+use crate::native::{effects::composition::Dependency, lowering::Lowering};
 
 #[derive(Default)]
 pub(super) struct NativeFunctionInfo {
@@ -13,16 +13,6 @@ pub(super) struct NativeFunctionInfo {
     pub(super) lowering: Option<Lowering>,
     pub(super) enum_operation: Option<enum_operations::Operation>,
     pub(super) unit_object: bool,
-}
-#[derive(Default)]
-pub(super) struct NativeRequests {
-    pub(super) direct: BTreeSet<(usize, bool)>,
-    pub(super) declarations: BTreeSet<usize>,
-    pub(super) values: BTreeSet<usize>,
-    pub(super) owned: BTreeSet<usize>,
-    pub(super) rooted: BTreeSet<usize>,
-    pub(super) effects: BTreeSet<(usize, crate::analysis::effects::Query)>,
-    pub(super) unit_bridges: BTreeSet<(usize, UnitBridge)>,
 }
 impl Compiler {
     pub(super) fn compose_native_environment_contract(

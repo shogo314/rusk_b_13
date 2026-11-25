@@ -108,9 +108,6 @@ impl Compiler {
 
     pub(super) fn record_cpp(&self) -> String {
         let mut code = String::new();
-        for name in self.records.keys() {
-            code.push_str(&format!("struct {};\n", self.types[name]));
-        }
         for (name, record) in &self.records {
             let native = &self.types[name];
             code.push_str(&format!("struct {native} {{\n"));

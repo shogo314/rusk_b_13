@@ -87,30 +87,20 @@ impl Compiler {
                 .collect()
         };
         let epilogue = self.enum_copy_cpp() + &self.record_copy_cpp();
+        let mut native_requests = self.native_requests.clone();
+        native_requests.declarations.extend(
+            self.generic_instances
+                .values()
+                .copied()
+                .filter(|&id| self.functions[id].body.is_none() && self.used.contains(&id)),
+        );
         crate::backend::Context {
             types: self.types.clone(),
             functions,
             prelude,
             concrete_foreign_definitions: definitions(concrete_foreign_definitions),
             foreign_definitions: definitions(foreign_definitions),
-            native_unit_bridges: self.native_requests.unit_bridges.clone(),
-            native_direct_references: self.native_requests.direct.clone(),
-            native_value_references: self.native_requests.values.clone(),
-            native_owned_references: self.native_requests.owned.clone(),
-            native_rooted_references: self.native_requests.rooted.clone(),
-            native_effect_references: self.native_requests.effects.clone(),
-            native_declarations: self
-                .native_requests
-                .declarations
-                .iter()
-                .copied()
-                .chain(
-                    self.generic_instances
-                        .values()
-                        .copied()
-                        .filter(|&id| self.functions[id].body.is_none() && self.used.contains(&id)),
-                )
-                .collect(),
+            native_requests,
             epilogue,
         }
     }

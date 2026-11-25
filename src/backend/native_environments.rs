@@ -69,7 +69,7 @@ pub(super) fn declarations(program: &Program, context: &Context) -> String {
     let mut out = String::new();
     for f in &program.functions {
         if let Some(raw) = &context.functions[f.id].native_entry
-            && (context.native_declarations.contains(&f.id)
+            && (context.native_requests.declarations.contains(&f.id)
                 || raw.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_'))
         {
             // Build a separate source-ABI declaration. The original entry can
@@ -88,7 +88,7 @@ pub(super) fn declarations(program: &Program, context: &Context) -> String {
             out += ";\n";
         }
     }
-    for &(id, object) in &context.native_direct_references {
+    for &(id, object) in &context.native_requests.direct {
         if !context.functions[id].captures.is_empty() {
             out += &reference_signature(&program.functions[id], context, object);
             out += ";\n";
@@ -118,7 +118,7 @@ pub(super) fn definitions(program: &Program, context: &Context, optimize: bool) 
         args.push("rusk_call_loc".into());
         out += &format!("return {raw}({});\n}}\n", args.join(","));
     }
-    for &(id, object) in &context.native_direct_references {
+    for &(id, object) in &context.native_requests.direct {
         let f = &program.functions[id];
         let info = &context.functions[id];
         if info.captures.is_empty() {

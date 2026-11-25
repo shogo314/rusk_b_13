@@ -249,6 +249,17 @@ fn recursive_records_enums_and_containers_share_copy_and_break_cycles() {
         );
         assert_eq!(out.stdout, b"1\n2 9\n3\n");
     }
+    let cpp = std::fs::read_to_string(case.0.join("main.cpp")).unwrap();
+    let mut forwards = std::collections::BTreeSet::new();
+    for line in cpp
+        .lines()
+        .filter(|line| line.starts_with("struct RuskRecord") && line.ends_with(';'))
+    {
+        assert!(
+            forwards.insert(line),
+            "duplicate forward declaration: {line}"
+        );
+    }
     let declarations = Case::new(
         "struct Direct{next:Direct;}enum Endless{Again(Endless)}{struct Local{next:Local;}}struct A{next:B;}struct B{next:A;}",
     );

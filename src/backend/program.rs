@@ -8,14 +8,7 @@ pub(crate) struct Context {
     pub prelude: String,
     pub concrete_foreign_definitions: Vec<String>,
     pub foreign_definitions: Vec<String>,
-    pub native_unit_bridges: std::collections::BTreeSet<(usize, crate::native::abi::UnitBridge)>,
-    pub native_direct_references: std::collections::BTreeSet<(usize, bool)>,
-    pub native_declarations: std::collections::BTreeSet<usize>,
-    pub native_value_references: std::collections::BTreeSet<usize>,
-    pub native_owned_references: std::collections::BTreeSet<usize>,
-    pub native_rooted_references: std::collections::BTreeSet<usize>,
-    pub native_effect_references:
-        std::collections::BTreeSet<(usize, crate::analysis::effects::Query)>,
+    pub native_requests: crate::native::NativeRequests,
     pub epilogue: String,
 }
 pub(super) fn signature(function: &ProgramFunction, context: &Context, optimize: bool) -> String {
@@ -57,7 +50,7 @@ pub(crate) fn emit(program: &Program, context: &Context, optimize: bool) -> Stri
     out += &super::native_environments::prelude(context);
     for f in &program.functions {
         if f.body.is_some()
-            || context.native_declarations.contains(&f.id)
+            || context.native_requests.declarations.contains(&f.id)
             || context.functions[f.id].native_entry.is_some()
         {
             out += &signature(f, context, optimize);
@@ -74,14 +67,14 @@ pub(crate) fn emit(program: &Program, context: &Context, optimize: bool) -> Stri
     out += &super::native_environments::definitions(program, context, optimize);
     // Native bodies may call these value-returning adapters, including adapters
     // to Rusk bodies defined later. All ordinary prototypes precede them.
-    for (id, query) in &context.native_effect_references {
+    for (id, query) in &context.native_requests.effects {
         out += &format!(
             "constexpr bool rusk_{}_{id} = {};\n",
             query.name(),
             query.evaluate(&program.functions[*id].effects)
         );
     }
-    for (id, bridge) in &context.native_unit_bridges {
+    for (id, bridge) in &context.native_requests.unit_bridges {
         let f = &program.functions[*id];
         let args = (0..super::native_environments::parameters(f, context).len())
             .map(|i| format!("rusk_a{i}"))
@@ -120,7 +113,7 @@ pub(crate) fn emit(program: &Program, context: &Context, optimize: bool) -> Stri
             actual.join(",")
         );
     }
-    for id in &context.native_value_references {
+    for id in &context.native_requests.values {
         let f = &program.functions[*id];
         let result = if f.result == "Unit" {
             "void"
@@ -135,12 +128,14 @@ pub(crate) fn emit(program: &Program, context: &Context, optimize: bool) -> Stri
         out += &format!("{} rusk_value_ref_{id}({});\n", result, params.join(","));
     }
     for (id, kind) in context
-        .native_owned_references
+        .native_requests
+        .owned
         .iter()
         .map(|id| (id, "owned"))
         .chain(
             context
-                .native_rooted_references
+                .native_requests
+                .rooted
                 .iter()
                 .map(|id| (id, "rooted")),
         )
@@ -157,7 +152,7 @@ pub(crate) fn emit(program: &Program, context: &Context, optimize: bool) -> Stri
             params.join(",")
         );
     }
-    for id in &context.native_value_references {
+    for id in &context.native_requests.values {
         let f = &program.functions[*id];
         let info = &context.functions[*id];
         let args = (0..super::native_environments::parameters(f, context).len())
@@ -207,12 +202,14 @@ pub(crate) fn emit(program: &Program, context: &Context, optimize: bool) -> Stri
         );
     }
     for (id, kind) in context
-        .native_owned_references
+        .native_requests
+        .owned
         .iter()
         .map(|id| (id, "owned"))
         .chain(
             context
-                .native_rooted_references
+                .native_requests
+                .rooted
                 .iter()
                 .map(|id| (id, "rooted")),
         )

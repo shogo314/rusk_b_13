@@ -124,7 +124,7 @@ pub struct Compiler {
     implicit_calls: BTreeSet<String>,
     functions: Vec<Function>,
     native_info: BTreeMap<usize, native_info::NativeFunctionInfo>,
-    native_requests: native_info::NativeRequests,
+    native_requests: crate::native::NativeRequests,
     native_types: BTreeMap<String, type_metadata::Metadata>,
     symbols: BTreeMap<String, symbols::Symbol>,
     symbol_order: Vec<String>,
