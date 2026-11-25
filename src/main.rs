@@ -65,13 +65,11 @@ fn compile(args: CompileArgs) -> Result<(), String> {
         EmitStage::Cst | EmitStage::Ast => unreachable!(),
     };
     let loaded = source::load(&file)?;
-    let mut provenance = stdlib::sources();
-    provenance.extend(loaded.sources);
     let source = loaded.statements;
     let mut cpp = compiler::Compiler::with_optimization(!no_opt)
         .compile(&[stdlib::load()?, compiler::Source::user(source)], emit)?;
     if matches!(emit, backend::Emit::Cpp) {
-        metadata::append_sources(&mut cpp, &provenance);
+        metadata::append_sources(&mut cpp, &loaded.sources);
     }
     let _stage = enter(Stage::Output);
     std::fs::write(&output, cpp).map_err(|e| format!("{}: {e}", output.display()))?;

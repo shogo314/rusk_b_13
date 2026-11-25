@@ -42,14 +42,3 @@ fn prelude_reaches_every_packaged_library_resource() {
         "library files must be reachable through prelude includes or native resources"
     );
 }
-
-pub(crate) fn sources() -> Vec<crate::frontend::source::SourceFile> {
-    FILES
-        .iter()
-        .filter(|(name, _)| name.ends_with(".rusk"))
-        .map(|(name, text)| crate::frontend::source::SourceFile {
-            name: format!("<stdlib/{name}>"),
-            text: (*text).into(),
-        })
-        .collect()
-}

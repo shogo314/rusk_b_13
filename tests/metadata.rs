@@ -31,12 +31,12 @@ fn metadata_identifies_the_compiler_and_source_comments_preserve_loaded_inputs()
         .filter_map(|line| line.strip_prefix("// Rusk source JSON: "))
         .map(|json| serde_json::from_str::<serde_json::Value>(json).unwrap())
         .collect::<Vec<_>>();
+    assert_eq!(sources.len(), 2);
     assert_eq!(
-        sources
-            .iter()
-            .filter(|file| file["name"].as_str().unwrap().ends_with("extra.rusk"))
+        cpp.lines()
+            .filter(|line| line.starts_with("// Rusk source: "))
             .count(),
-        1
+        2
     );
     for (name, text) in [("main.rusk", source), ("extra.rusk", extra)] {
         let file = sources
@@ -45,11 +45,6 @@ fn metadata_identifies_the_compiler_and_source_comments_preserve_loaded_inputs()
             .unwrap();
         assert_eq!(file["text"], text);
     }
-    assert!(
-        sources
-            .iter()
-            .any(|file| file["name"] == "<stdlib/core/objects.rusk>")
-    );
     let compiled = case.compile();
     assert!(compiled.status.success());
     assert_eq!(
