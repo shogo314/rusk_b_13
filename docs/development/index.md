@@ -13,6 +13,7 @@
 | ローカル・CI・公開問題・文書例の確認 | [テストの実行](verification.md) |
 | 最適化の条件、測定の手順と限界 | [性能と最適化](performance.md) |
 | 文書の分類、掲載例、サイトのビルド・公開 | [ドキュメントの編集と公開](documentation.md) |
+| 標準ライブラリの命名・署名・APIの説明 | [標準ライブラリの命名とAPI設計](stdlib-api.md) |
 | ソース内のAPI説明とファイル説明 | [文書コメント](doc-comments.md) |
 | ソース整形と整形済みかの確認 | [ソースの整形](../getting-started/formatting.md) |
 | 未実装の方針と検討案 | [将来の方針](../future.md) |

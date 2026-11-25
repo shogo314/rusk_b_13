@@ -6,7 +6,7 @@
 
 標準preludeを自動で読み込み、追加ライブラリはincludeで分割する。includeはファイル相対で解決し、正規化した同じファイルは一度だけ展開する。循環は経路付きのエラーにする。ファイルは名前空間を作らない。
 
-型はUpperCamelCase、関数と変数はsnake_caseを基本とする。`a.f(x)`は通常`f(a, x)`の糖衣で、関数を保持するフィールドなどは関数値として呼ぶ。型名と同名の通常関数を構築関数に使う。
+標準ライブラリの命名とAPI設計は[開発ガイド](../docs/development/stdlib-api.md)にまとめる。`a.f(x)`は通常`f(a, x)`の糖衣で、関数を保持するフィールドなどは関数値として呼ぶ。
 
 配列のpush_back/pop_back、bisect_left/bisect_right、sort/sorted、sort_by_key/sort_by_compなどを使える。安定ソートを基本とし、不安定ソートは別の名前を持つ。キー付きソートはキーを一度評価してコピーで保存し、元の要素の共有を保つ。詳しい範囲は[現行API](../docs/library/index.md)にある。
 
