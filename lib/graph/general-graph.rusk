@@ -159,8 +159,7 @@ fn minimum_spanning_forest(n: Int, edges: Vec<(Int, Int, Int)>) -> (Int128, Vec<
     let selected: Vec<Int> := [];
     for (weight, index) in order {
         let (from, to, _) := edges[index];
-        if !uf.same(from, to) {
-            uf.unite(from, to);
+        if uf.unite(from, to) {
             total += Int128(weight);
             selected.push_back(copy(index));
         }

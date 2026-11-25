@@ -40,6 +40,13 @@ extern fn len<T>(a: Vec<T>) -> Int {
     code: "Obj<std::int64_t> @{fn}(Obj<@{Vec<T>}> a, [[maybe_unused]] Loc loc) { return make_obj<std::int64_t>(checked_int(static_cast<__int128>(a->size()),loc)); }",
 }
 
+/// 配列に要素がなければtrueを返します。
+extern fn is_empty<T>(a: Vec<T>) -> Bool {
+    lower: "$0->empty()",
+    effects: "read_fresh",
+    code: "Obj<bool> @{fn}(Obj<@{Vec<T>}> a, [[maybe_unused]] Loc loc) { return make_obj<bool>(a->empty()); }",
+}
+
 /// 値を共有したまま配列の末尾に追加します。
 extern fn push_back<T>(a: Vec<T>, x: T) {
     effects: "resize_retain_second",

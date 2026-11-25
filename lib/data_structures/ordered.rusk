@@ -191,11 +191,6 @@ extern fn insert<K>(a: MultiSet<K>, key: K) -> Unit {
 }
 
 /// 該当するキーを1個削除し、削除できたか返します。
-extern fn erase<K>(a: MultiSet<K>, key: K) -> Bool {
-    code: "Obj<@{Bool}> @{fn}(Obj<@{MultiSet<K>}> a,Obj<@{K}> key,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);auto p=a->entries.find(key);if(p==a->entries.end())return make_obj<bool>(false);a->entries.erase(p);++a->version;return make_obj<bool>(true);}",
-}
-
-/// 該当キーを1個だけ削除します。
 extern fn erase_one<K>(a: MultiSet<K>, key: K) -> Bool {
     code: "Obj<@{Bool}> @{fn}(Obj<@{MultiSet<K>}> a,Obj<@{K}> key,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);auto p=a->entries.find(key);if(p==a->entries.end())return make_obj<bool>(false);a->entries.erase(p);++a->version;return make_obj<bool>(true);}",
 }

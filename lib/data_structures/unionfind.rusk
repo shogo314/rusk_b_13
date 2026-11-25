@@ -26,12 +26,12 @@ fn leader(uf: UnionFind, vertex: Int) -> Int {
     return root;
 }
 
-/// 2頂点の連結成分をサイズの小さい側から併合します。
-fn unite(uf: UnionFind, u: Int, v: Int) {
+/// 2頂点の連結成分をサイズの小さい側から併合し、併合した場合はtrueを返します。
+fn unite(uf: UnionFind, u: Int, v: Int) -> Bool {
     let a := uf.leader(u);
     let b := uf.leader(v);
     if a == b {
-        return;
+        return false;
     }
     if uf.parents[a] > uf.parents[b] {
         let held := a;
@@ -40,6 +40,7 @@ fn unite(uf: UnionFind, u: Int, v: Int) {
     }
     uf.parents[a] += uf.parents[b];
     uf.parents[b] = a;
+    return true;
 }
 
 /// 2頂点が同じ連結成分に属するか返します。

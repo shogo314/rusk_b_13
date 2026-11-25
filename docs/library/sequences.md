@@ -32,6 +32,7 @@ wt grid[1];
 | 操作 | 戻り値・振る舞い | 計算量の目安 |
 |---|---|---|
 | `len(a)` | 要素数のInt | O(1) |
+| `is_empty(a)` | 要素がなければ `true`。readonlyでも使用可 | O(1) |
 | `push_back(a, x)` | xを共有して追加 | 償却O(1) |
 | `pop_back(a)` | 末尾を削除し、その要素を共有して返す。空ならエラー | O(1) |
 | `copy(a)` | 各要素の`__copy__`を使う新しい配列 | 各要素のコピーの合計 |
@@ -43,6 +44,12 @@ wt grid[1];
 | `contains(a, x)` | 値が一致する要素の有無 | O(N)回の比較 |
 | `find(a, x)` | 最初の位置をOption<Int>で返す | O(N)回の比較 |
 | `sum(a)` / `sum(a, initial)` | 走査順の合計。省略時の初期値は要素型の`T()` | O(N)回の加算。[集計](algorithms.md#aggregation) |
+
+```rusk
+readonly let values: Vec<Int> := [];
+readonly let text := "Rusk";
+wt values.is_empty(), text.is_empty(); // Yes No
+```
 
 要素を取得した後に配列が拡張・削除されても、取得済みの要素への共有はそのオブジェクトを保持します。配列のイテレータの有効性とは別の規則です。
 
@@ -78,6 +85,7 @@ wt ordered;
 | 操作 | 振る舞い |
 |---|---|
 | `len(s)` | 文字数。O(1) |
+| `is_empty(s)` | 文字がなければ `true`。readonlyでも使用可。O(1) |
 | `s[i]` | 元の文字列内の文字を共有 |
 | `s[i] = c` | 元の文字を書き換える |
 | `s + t` | 独立した文字列を作る |

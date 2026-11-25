@@ -7,6 +7,15 @@ extern fn len(s: Str) -> Int {
     cpp_name: "basic_function_24",
     code: "Obj<std::int64_t> basic_function_24(Obj<std::string> s, [[maybe_unused]] Loc loc) { return make_obj<std::int64_t>(checked_int(static_cast<__int128>(s->size()),loc)); }",
 }
+
+/// 文字列に文字がなければtrueを返します。
+extern fn is_empty(s: Str) -> Bool {
+    lower: "$0->empty()",
+    effects: "read_fresh",
+    cpp_name: "rusk_std_str_is_empty",
+    code: "Obj<bool> rusk_std_str_is_empty(Obj<std::string> s, [[maybe_unused]] Loc loc) { return make_obj<bool>(s->empty()); }",
+}
+
 extern fn __getitem__(s: Str, i: Int) -> Char {
     effects: "element",
     cpp_name: "basic_function_25",

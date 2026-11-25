@@ -8,7 +8,7 @@
 
 ```rusk
 let uf := UnionFind(4);
-uf.unite(0, 1);
+wt uf.unite(0, 1), uf.unite(1, 0); // Yes No
 uf.unite(1, 2);
 wt uf.same(0, 2), uf.same(0, 3); // Yes No
 let independent = uf;
@@ -20,7 +20,7 @@ wt uf.same(0, 3), independent.same(0, 3); // No Yes
 |---|---|
 | `UnionFind(n: Int) -> UnionFind` | 頂点 `0..n` の集合を作る。`n >= 0` |
 | `leader(uf: UnionFind, vertex: Int) -> Int` | 代表頂点を返す。経路圧縮で状態を更新する |
-| `unite(uf: UnionFind, u: Int, v: Int)` | 2集合を併合。既に同じなら何もしない。戻り型は `Unit` |
+| `unite(uf: UnionFind, u: Int, v: Int) -> Bool` | 異なる集合を併合したときは `true`。既に同じ集合なら `false` |
 | `same(uf: UnionFind, u: Int, v: Int) -> Bool` | 同じ集合かを返す。代表探索で状態を更新する |
 
 頂点は `0 <= vertex < n`。構築はO(n)、サイズによる併合と経路圧縮により一連の操作は償却O(α(n))です。コピーはO(n)です。存在しない頂点へのアクセスは配列の範囲検査で失敗します。

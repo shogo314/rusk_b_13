@@ -146,6 +146,46 @@ let c=d;c[1]="X";wt d.values(),c.values();
 }
 
 #[test]
+fn container_and_union_find_api_agree_with_their_public_contracts() {
+    let program = Case::new(
+        r#"
+readonly let empty_vec:Vec<Int> := [];
+readonly let full_vec := [1];
+readonly let empty_str := "";
+readonly let full_str := "x";
+wt is_empty(empty_vec), full_vec.is_empty(), empty_str.is_empty(), is_empty(full_str);
+
+let multiset:=MultiSet::<Int>();
+multiset.insert(2);multiset.insert(2);multiset.insert(2);multiset.insert(1);
+wt multiset.erase_one(2),multiset.count(2),multiset.erase_all(2),multiset.erase_all(2),multiset.erase_one(2),multiset.count(1);
+let set:=OrderedSet::<Int>();set.insert(2);wt set.erase(2);
+
+fn unite_discarding_result(uf:UnionFind,u:Int,v:Int)->Unit {uf.unite(u,v);}
+let uf:=UnionFind(4);
+wt uf.unite(0,1),uf.unite(1,0),uf.unite(2,2);
+unite_discarding_result(uf,1,2);
+wt uf.same(0,2),uf.same(0,3);
+"#,
+    );
+    let removed = Case::new("let m:=MultiSet::<Int>();m.erase(1);");
+    for options in [&[][..], &["--no-opt"][..]] {
+        let out = program.run_with_options("", options);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        assert_eq!(
+            out.stdout,
+            b"Yes No Yes No\nYes 2 2 0 No 1\nYes\nYes No No\nYes No\n"
+        );
+        let out = removed.compile_with_options(options);
+        assert!(!out.status.success());
+        assert!(String::from_utf8_lossy(&out.stderr).contains("no matching function 'erase'"));
+    }
+}
+
+#[test]
 fn selection_sorted_sets_and_numeric_algorithms_match_expected_results() {
     let out=Case::new(r#"
 let a:=[5,1,4,2,3];nth_element(a,2);wt a[2];partial_sort(a,3);wt a[0],a[1],a[2];
