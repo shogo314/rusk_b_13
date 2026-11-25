@@ -34,7 +34,7 @@ rusk compile main.rusk -o main.cpp
 
 ## ヘルプ・引数・終了コード
 
-`rusk --help`はコマンドの一覧、`rusk compile --help`・`rusk dependencies --help`は各コマンドの引数とオプションを表示します。`rusk help compile`も使えます。`rusk --version`は処理系のパッケージバージョンを表示します。β12は`0.1.0-beta.12`で、正式版の`0.1.0`と区別します。
+`rusk --help`はコマンドの一覧、`rusk compile --help`・`rusk dependencies --help`は各コマンドの引数とオプションを表示します。`rusk help compile`も使えます。`rusk --version`は処理系のパッケージバージョンを表示します。β13は`0.1.0-beta.13`で、正式版の`0.1.0`と区別します。
 
 `--emit=hir`・`--output=main.hir`のように値を`=`で指定できます。同じ出力先・出力段階を複数回指定した場合は最後の値を使い、`--no-opt`の重複指定も許可します。
 
