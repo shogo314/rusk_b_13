@@ -56,7 +56,9 @@ for row in permutations([2, 1, 1]) {
 | `MultiSet<K>` | 重複を保持する集合 |
 | `OrderedDict<K,V>` | キー順の辞書 |
 
-引数なしで構築し、キーの全順序で走査します。`insert`または`set`、`contains`・`clear`、lower_bound・upper_bound・first・lastを提供します。境界取得はキーのコピーを`Option<K>`で返します。`OrderedSet` と `OrderedDict` の削除には `erase` を使います。`MultiSet` の `erase_one(key)` は1件を削除し、削除できたかを `Bool` で返します。`erase_all(key)` は同値のキーをすべて削除し、削除した件数を `Int` で返します。`count(key)` で同値のキーの件数を取得します。
+引数なしで構築し、キーの全順序で走査します。`insert`または`set`、`contains`・`clear`、lower_bound・upper_bound・first・lastを提供します。境界取得はキーのコピーを`Option<K>`で返します。
+
+`OrderedSet` と `OrderedDict` の削除には `erase` を使います。`MultiSet` の `erase_one(key)` は1件を削除し、削除できたかを `Bool` で返します。`erase_all(key)` は同値のキーをすべて削除し、削除した件数を `Int` で返します。`count(key)` で同値のキーの件数を取得します。
 
 ```rusk
 let keys := MultiSet::<Int>();

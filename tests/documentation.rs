@@ -161,7 +161,7 @@ fn data_structure_examples_include_and_define_the_types_they_use() {
     runnable_examples(
         include_str!("../docs/library/data-structures.md"),
         &[
-            ("", "Yes No\nNo Yes\n"),
+            ("", "Yes No\nYes No\nNo Yes\n"),
             ("", "6 9\n15\n0\n"),
             ("", "9\n17\nabcdef\nabXef\n"),
             ("", "25\n0 17\n"),
@@ -178,6 +178,7 @@ fn sequence_examples_preserve_copies_and_character_lifetimes() {
         include_str!("../docs/library/sequences.md"),
         &[
             ("", "0 7 0\n0 0 0\n"),
+            ("", "Yes No\n"),
             ("", "3 9 2\n9 2 3\n"),
             ("", "bat\nbat!\n"),
         ],
@@ -395,9 +396,9 @@ fn noescape_documented_rejections_are_checked_after_instantiation() {
 }
 
 #[test]
-fn extended_library_documentation_enumerates_permutations() {
+fn extended_library_examples_cover_permutations_and_multiset_removal() {
     runnable_examples(
         include_str!("../docs/library/extended.md"),
-        &[("", "1 1 2\n1 2 1\n2 1 1\n")],
+        &[("", "1 1 2\n1 2 1\n2 1 1\n"), ("", "Yes 1\n1 0\n")],
     );
 }
