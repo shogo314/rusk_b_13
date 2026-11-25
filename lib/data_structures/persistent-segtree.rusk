@@ -1,5 +1,6 @@
 /// 永続セグメント木が版間で共有する不変のノードです。
 extern type<T> PersistentSegTreeNode {
+    depends: "__runtime_persistent_segment_tree__",
     cpp_name: "RuskPersistentSegTreeNode<{T}>",
 }
 

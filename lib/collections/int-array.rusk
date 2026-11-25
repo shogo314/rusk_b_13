@@ -1,10 +1,12 @@
 /// Intを連続格納する可変長配列です。要素の取得は共有ではなく値のコピーです。
 extern type IntArray {
+    depends: "__runtime_extended_sequences__",
     cpp_name: "RuskIntArray",
 }
 
 /// 空の整数配列を作ります。
 extern fn IntArray() -> IntArray {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<RuskIntArray> rusk_std_int_array_1([[maybe_unused]] Loc loc){return make_obj<RuskIntArray>(RuskIntArray{});}",
     cpp_name: "rusk_std_int_array_1",
     effects: "read_fresh",
@@ -12,6 +14,7 @@ extern fn IntArray() -> IntArray {
 
 /// 指定長の整数配列を値で埋めて作ります。
 extern fn IntArray(n: Int, value: Int) -> IntArray {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<RuskIntArray> rusk_std_int_array_2(Obj<std::int64_t> n,Obj<std::int64_t> value,[[maybe_unused]] Loc loc){if(*n<0)fail(loc,\"negative array length\");auto r=make_obj<RuskIntArray>(RuskIntArray{});if(static_cast<std::uint64_t>(*n)>r->values.max_size())fail(loc,\"array length out of range\");r->values.assign(static_cast<std::size_t>(*n),*value);return r;}",
     cpp_name: "rusk_std_int_array_2",
     effects: "checked_read_fresh",
@@ -19,6 +22,7 @@ extern fn IntArray(n: Int, value: Int) -> IntArray {
 
 /// Vec<Int>から要素の値をコピーします。
 extern fn IntArray(a: Vec<Int>) -> IntArray {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<RuskIntArray> rusk_std_int_array_3(Obj<RuskVec<std::int64_t>> a,[[maybe_unused]] Loc loc){auto r=make_obj<RuskIntArray>(RuskIntArray{});r->values.reserve(a->size());for(const auto& x:*a)r->values.push_back(*x);return r;}",
     cpp_name: "rusk_std_int_array_3",
     effects: "read_fresh",
@@ -26,6 +30,7 @@ extern fn IntArray(a: Vec<Int>) -> IntArray {
 
 /// 全要素を独立にコピーします。
 extern fn __copy__(a: IntArray) -> IntArray {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<RuskIntArray> rusk_std_int_array_4(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){return make_obj<RuskIntArray>(*a);}",
     cpp_name: "rusk_std_int_array_4",
     effects: "read_fresh",
@@ -33,6 +38,7 @@ extern fn __copy__(a: IntArray) -> IntArray {
 
 /// 外側を保って全要素をコピー代入し、走査を無効化します。
 extern fn __assign__(a: IntArray, b: IntArray) -> Unit {
+    depends: "__runtime_extended_sequences__",
     code: "void rusk_std_int_array_5(Obj<RuskIntArray> a,Obj<RuskIntArray> b,[[maybe_unused]] Loc loc){auto v=b->values;a->values.swap(v);++a->version;}",
     cpp_name: "rusk_std_int_array_5",
     effects: "checked_resize_first",
@@ -40,6 +46,7 @@ extern fn __assign__(a: IntArray, b: IntArray) -> Unit {
 
 /// 要素数を返します。
 extern fn len(a: IntArray) -> Int {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<std::int64_t> rusk_std_int_array_6(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){return make_obj<std::int64_t>(checked_int(a->size(),loc));}",
     cpp_name: "rusk_std_int_array_6",
     effects: "checked_read_fresh",
@@ -47,6 +54,7 @@ extern fn len(a: IntArray) -> Int {
 
 /// 空の配列ならtrueです。
 extern fn is_empty(a: IntArray) -> Bool {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<bool> rusk_std_int_array_7(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){return make_obj<bool>(a->size()==0);}",
     cpp_name: "rusk_std_int_array_7",
     effects: "read_fresh",
@@ -54,6 +62,7 @@ extern fn is_empty(a: IntArray) -> Bool {
 
 /// 独立した値を取得します。添字式は読み取り専用で、更新にはsetまたは:=を使います。
 extern fn get(a: IntArray, i: Int) -> Int {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<std::int64_t> rusk_std_int_array_8(Obj<RuskIntArray> a,Obj<std::int64_t> i,[[maybe_unused]] Loc loc){return make_obj<std::int64_t>(a->values[checked_index(a->size(),*i,loc)]);}",
     cpp_name: "rusk_std_int_array_8",
     effects: "checked_read_fresh",
@@ -61,6 +70,7 @@ extern fn get(a: IntArray, i: Int) -> Int {
 
 /// 独立した値を取得します。添字式は読み取り専用で、更新にはsetまたは:=を使います。
 extern fn __getitem__(a: IntArray, i: Int) -> readonly Int {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<std::int64_t> rusk_std_int_array_9(Obj<RuskIntArray> a,Obj<std::int64_t> i,[[maybe_unused]] Loc loc){return make_obj<std::int64_t>(a->values[checked_index(a->size(),*i,loc)]);}",
     cpp_name: "rusk_std_int_array_9",
     effects: "checked_read_fresh",
@@ -68,6 +78,7 @@ extern fn __getitem__(a: IntArray, i: Int) -> readonly Int {
 
 /// 指定位置の値を置き換えます。負の添字も末尾から数えます。
 extern fn set(a: IntArray, i: Int, value: Int) -> Unit {
+    depends: "__runtime_extended_sequences__",
     code: "void rusk_std_int_array_10(Obj<RuskIntArray> a,Obj<std::int64_t> i,Obj<std::int64_t> value,[[maybe_unused]] Loc loc){a->values[checked_index(a->size(),*i,loc)]=*value;}",
     cpp_name: "rusk_std_int_array_10",
     effects: "checked_write_first",
@@ -75,6 +86,7 @@ extern fn set(a: IntArray, i: Int, value: Int) -> Unit {
 
 /// 指定位置の値を置き換えます。負の添字も末尾から数えます。
 extern fn __setitem__(a: IntArray, i: Int, value: Int) -> Int {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<std::int64_t> rusk_std_int_array_11(Obj<RuskIntArray> a,Obj<std::int64_t> i,Obj<std::int64_t> value,[[maybe_unused]] Loc loc){a->values[checked_index(a->size(),*i,loc)]=*value;return make_obj<std::int64_t>(*value);}",
     cpp_name: "rusk_std_int_array_11",
     effects: "checked_mutate_fresh",
@@ -82,6 +94,7 @@ extern fn __setitem__(a: IntArray, i: Int, value: Int) -> Int {
 
 /// 値を末尾へ追加します。
 extern fn push_back(a: IntArray, value: Int) -> Unit {
+    depends: "__runtime_extended_sequences__",
     code: "void rusk_std_int_array_12(Obj<RuskIntArray> a,Obj<std::int64_t> value,[[maybe_unused]] Loc loc){a->values.push_back(*value);++a->version;}",
     cpp_name: "rusk_std_int_array_12",
     effects: "checked_resize_first",
@@ -89,6 +102,7 @@ extern fn push_back(a: IntArray, value: Int) -> Unit {
 
 /// 末尾の値を取り出します。空なら失敗します。
 extern fn pop_back(a: IntArray) -> Int {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<std::int64_t> rusk_std_int_array_13(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){if(a->values.empty())fail(loc,\"empty array\");auto v=a->values.back();a->values.pop_back();++a->version;return make_obj<std::int64_t>(v);}",
     cpp_name: "rusk_std_int_array_13",
     effects: "checked_mutate_fresh",
@@ -96,6 +110,7 @@ extern fn pop_back(a: IntArray) -> Int {
 
 /// 全要素を削除します。
 extern fn clear(a: IntArray) -> Unit {
+    depends: "__runtime_extended_sequences__",
     code: "void rusk_std_int_array_14(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){a->values.clear();++a->version;}",
     cpp_name: "rusk_std_int_array_14",
     effects: "checked_resize_first",
@@ -103,6 +118,7 @@ extern fn clear(a: IntArray) -> Unit {
 
 /// 長さを変更し、増えた位置を値で埋めます。
 extern fn resize(a: IntArray, n: Int, value: Int) -> Unit {
+    depends: "__runtime_extended_sequences__",
     code: "void rusk_std_int_array_15(Obj<RuskIntArray> a,Obj<std::int64_t> n,Obj<std::int64_t> value,[[maybe_unused]] Loc loc){if(*n<0||static_cast<std::uint64_t>(*n)>a->values.max_size())fail(loc,\"array length out of range\");if(a->size()!=static_cast<std::size_t>(*n)){a->values.resize(static_cast<std::size_t>(*n),*value);++a->version;}}",
     cpp_name: "rusk_std_int_array_15",
     effects: "checked_resize_first",
@@ -110,6 +126,7 @@ extern fn resize(a: IntArray, n: Int, value: Int) -> Unit {
 
 /// 値を昇順に並べ替えます。
 extern fn sort(a: IntArray) -> Unit {
+    depends: "__runtime_extended_sequences__",
     code: "void rusk_std_int_array_17(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){std::sort(a->values.begin(),a->values.end());++a->version;}",
     cpp_name: "rusk_std_int_array_17",
     effects: "checked_resize_first",
@@ -117,6 +134,7 @@ extern fn sort(a: IntArray) -> Unit {
 
 /// 値の並び順を反転します。
 extern fn reverse(a: IntArray) -> Unit {
+    depends: "__runtime_extended_sequences__",
     code: "void rusk_std_int_array_18(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){std::reverse(a->values.begin(),a->values.end());++a->version;}",
     cpp_name: "rusk_std_int_array_18",
     effects: "checked_resize_first",
@@ -124,6 +142,7 @@ extern fn reverse(a: IntArray) -> Unit {
 
 /// 配列の内容を比較します。
 extern fn __eq__(a: IntArray, b: IntArray) -> Bool {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<bool> rusk_std_int_array_19(Obj<RuskIntArray> a,Obj<RuskIntArray> b,[[maybe_unused]] Loc loc){return make_obj<bool>(a->values==b->values);}",
     cpp_name: "rusk_std_int_array_19",
     effects: "read_fresh",
@@ -131,6 +150,7 @@ extern fn __eq__(a: IntArray, b: IntArray) -> Bool {
 
 /// 配列の内容を比較します。
 extern fn __ne__(a: IntArray, b: IntArray) -> Bool {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<bool> rusk_std_int_array_20(Obj<RuskIntArray> a,Obj<RuskIntArray> b,[[maybe_unused]] Loc loc){return make_obj<bool>(a->values!=b->values);}",
     cpp_name: "rusk_std_int_array_20",
     effects: "read_fresh",
@@ -138,6 +158,7 @@ extern fn __ne__(a: IntArray, b: IntArray) -> Bool {
 
 /// 全要素からハッシュを計算します。
 extern fn __hash__(a: IntArray) -> Int {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<std::int64_t> rusk_std_int_array_21(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){std::size_t h=0;for(auto n:a->values)rusk_hash_combine(h,std::hash<std::int64_t>{}(n));return make_obj<std::int64_t>(static_cast<std::int64_t>(h));}",
     cpp_name: "rusk_std_int_array_21",
     effects: "read_fresh",
@@ -145,6 +166,7 @@ extern fn __hash__(a: IntArray) -> Int {
 
 /// 要素を空白区切りで出力します。
 extern fn __write__(a: IntArray) -> Unit {
+    depends: "__runtime_extended_sequences__",
     code: "void rusk_std_int_array_22(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){bool first=true;for(auto n:a->values){if(!first)rusk_write(' ');first=false;rusk_write(n);}}",
     cpp_name: "rusk_std_int_array_22",
     effects: "io_write",
@@ -152,6 +174,7 @@ extern fn __write__(a: IntArray) -> Unit {
 
 /// 指定個数のIntを直接格納して入力します。
 extern fn __read__(n: Int) -> IntArray {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<RuskIntArray> rusk_std_int_array_23(Obj<std::int64_t> n,[[maybe_unused]] Loc loc){if(*n<0)fail(loc,\"negative array length\");auto r=make_obj<RuskIntArray>(RuskIntArray{});if(static_cast<std::uint64_t>(*n)>r->values.max_size())fail(loc,\"array length out of range\");r->values.reserve(static_cast<std::size_t>(*n));for(std::int64_t i=0;i<*n;++i)r->values.push_back(rusk_read_int(loc));return r;}",
     cpp_name: "rusk_std_int_array_23",
     effects: "io_read_fresh",
@@ -159,6 +182,7 @@ extern fn __read__(n: Int) -> IntArray {
 
 /// 所有元を保持し、構造変更を検出する走査状態です。
 extern type IntArrayIter {
+    depends: "__runtime_extended_sequences__",
     cpp_name: "RuskLinearIter<RuskIntArray>",
     representation: "iterator<Int>",
     retains: "owner:IntArray",
@@ -166,6 +190,7 @@ extern type IntArrayIter {
 
 /// 所有元を共有する新しい走査状態を作ります。
 extern fn __iter__(a: IntArray) -> IntArrayIter {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<RuskLinearIter<RuskIntArray>> rusk_std_int_array_24(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){return make_obj<RuskLinearIter<RuskIntArray>>(RuskLinearIter<RuskIntArray>(a));}",
     cpp_name: "rusk_std_int_array_24",
     effects: "read_fresh",
@@ -174,6 +199,7 @@ extern fn __iter__(a: IntArray) -> IntArrayIter {
 
 /// 現在の走査状態を共有します。
 extern fn __iter__(it: IntArrayIter) -> IntArrayIter {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<RuskLinearIter<RuskIntArray>> rusk_std_int_array_25(Obj<RuskLinearIter<RuskIntArray>> it,[[maybe_unused]] Loc loc){return it;}",
     cpp_name: "rusk_std_int_array_25",
     effects: "read_fresh",
@@ -182,18 +208,21 @@ extern fn __iter__(it: IntArrayIter) -> IntArrayIter {
 
 /// 次の要素があるか調べます。走査中の構造変更は失敗します。
 extern fn __iter_has_next__(it: IntArrayIter) -> Bool {
+    depends: "__runtime_lazy_iterators__, __runtime_extended_sequences__",
     code: "Obj<bool> rusk_std_int_array_26(Obj<RuskLinearIter<RuskIntArray>> it,[[maybe_unused]] Loc loc){if(it->finished)return make_obj<bool>(false);rusk_guard_iter(it,loc);if(it->index>=it->owner->size()){it->finished=true;return make_obj<bool>(false);}return make_obj<bool>(true);}",
     cpp_name: "rusk_std_int_array_26",
 }
 
 /// 次の要素を返して位置を進めます。終了後の取得は失敗します。
 extern fn __iter_next__(it: IntArrayIter) -> Int {
+    depends: "__runtime_lazy_iterators__, __runtime_extended_sequences__",
     code: "Obj<std::int64_t> rusk_std_int_array_27(Obj<RuskLinearIter<RuskIntArray>> it,[[maybe_unused]] Loc loc){if(it->finished)fail(loc,\"iterator exhausted\");rusk_guard_iter(it,loc);if(it->index>=it->owner->size()){it->finished=true;fail(loc,\"iterator exhausted\");}return make_obj<std::int64_t>(it->owner->at(it->index++));}",
     cpp_name: "rusk_std_int_array_27",
 }
 
 /// 位置をコピーし、所有元を共有する走査状態を返します。
 extern fn __copy__(it: IntArrayIter) -> IntArrayIter {
+    depends: "__runtime_lazy_iterators__, __runtime_extended_sequences__",
     code: "Obj<RuskLinearIter<RuskIntArray>> rusk_std_int_array_28(Obj<RuskLinearIter<RuskIntArray>> it,[[maybe_unused]] Loc loc){rusk_guard_iter(it,loc);return make_obj<RuskLinearIter<RuskIntArray>>(*it);}",
     cpp_name: "rusk_std_int_array_28",
     effects: "checked_read_fresh",
@@ -202,6 +231,7 @@ extern fn __copy__(it: IntArrayIter) -> IntArrayIter {
 
 /// 外側の同一性を保ち、走査位置と所有元を更新します。
 extern fn __assign__(a: IntArrayIter, b: IntArrayIter) -> Unit {
+    depends: "__runtime_lazy_iterators__, __runtime_extended_sequences__",
     code: "void rusk_std_int_array_29(Obj<RuskLinearIter<RuskIntArray>> a,Obj<RuskLinearIter<RuskIntArray>> b,[[maybe_unused]] Loc loc){rusk_guard_iter(b,loc);auto value=*b;*a=std::move(value);}",
     cpp_name: "rusk_std_int_array_29",
 }

@@ -2,11 +2,13 @@
 
 /// 符号付き任意精度整数。加減算は桁数に比例し、乗算・除算は初期の二次時間実装です。
 extern type BigInt {
+    depends: "__runtime_big_int__",
     cpp_name: "RuskBigInt",
 }
 
 /// 任意精度整数の0を作ります。
 extern fn BigInt() -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_1([[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt{});}",
     cpp_name: "rusk_std_big_int_1",
     effects: "read_fresh",
@@ -14,6 +16,7 @@ extern fn BigInt() -> BigInt {
 
 /// Intから独立したBigIntを作ります。
 extern fn BigInt(x: Int) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_2(Obj<std::int64_t> x,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt(*x));}",
     cpp_name: "rusk_std_big_int_2",
     effects: "read_fresh",
@@ -21,6 +24,7 @@ extern fn BigInt(x: Int) -> BigInt {
 
 /// Strから独立したBigIntを作ります。
 extern fn BigInt(x: Str) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_3(Obj<std::string> x,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::parse(*x,loc));}",
     cpp_name: "rusk_std_big_int_3",
     effects: "checked_read_fresh",
@@ -28,6 +32,7 @@ extern fn BigInt(x: Str) -> BigInt {
 
 /// BigIntから独立したBigIntを作ります。
 extern fn BigInt(x: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_4(Obj<RuskBigInt> x,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(*x);}",
     cpp_name: "rusk_std_big_int_4",
     effects: "read_fresh",
@@ -35,6 +40,7 @@ extern fn BigInt(x: BigInt) -> BigInt {
 
 /// Intへ明示変換します。範囲外は失敗します。
 extern fn Int(x: BigInt) -> Int {
+    depends: "__runtime_big_int__",
     code: "Obj<std::int64_t> rusk_std_big_int_5(Obj<RuskBigInt> x,[[maybe_unused]] Loc loc){return make_obj<std::int64_t>(x->to_int(loc));}",
     cpp_name: "rusk_std_big_int_5",
     effects: "checked_read_fresh",
@@ -42,6 +48,7 @@ extern fn Int(x: BigInt) -> Int {
 
 /// 十進文字列へ変換します。
 extern fn Str(x: BigInt) -> Str {
+    depends: "__runtime_big_int__",
     code: "Obj<std::string> rusk_std_big_int_6(Obj<RuskBigInt> x,[[maybe_unused]] Loc loc){return make_obj<std::string>(x->str());}",
     cpp_name: "rusk_std_big_int_6",
     effects: "read_fresh",
@@ -49,6 +56,7 @@ extern fn Str(x: BigInt) -> Str {
 
 /// 全桁を独立にコピーします。
 extern fn __copy__(x: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_7(Obj<RuskBigInt> x,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(*x);}",
     cpp_name: "rusk_std_big_int_7",
     effects: "read_fresh",
@@ -56,6 +64,7 @@ extern fn __copy__(x: BigInt) -> BigInt {
 
 /// 外側の同一性を保って全桁をコピー代入します。
 extern fn __assign__(a: BigInt, b: BigInt) -> Unit {
+    depends: "__runtime_big_int__",
     code: "void rusk_std_big_int_8(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){auto value=*b;*a=std::move(value);}",
     cpp_name: "rusk_std_big_int_8",
     effects: "write_first",
@@ -63,6 +72,7 @@ extern fn __assign__(a: BigInt, b: BigInt) -> Unit {
 
 /// BigIntのaddを独立した値として計算します。
 extern fn __add__(a: BigInt, b: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_9(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(*a+*b);}",
     cpp_name: "rusk_std_big_int_9",
     effects: "read_fresh",
@@ -70,6 +80,7 @@ extern fn __add__(a: BigInt, b: BigInt) -> BigInt {
 
 /// BigIntのsubを独立した値として計算します。
 extern fn __sub__(a: BigInt, b: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_10(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(*a-*b);}",
     cpp_name: "rusk_std_big_int_10",
     effects: "read_fresh",
@@ -77,6 +88,7 @@ extern fn __sub__(a: BigInt, b: BigInt) -> BigInt {
 
 /// BigIntのmulを独立した値として計算します。
 extern fn __mul__(a: BigInt, b: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_11(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(*a**b);}",
     cpp_name: "rusk_std_big_int_11",
     effects: "read_fresh",
@@ -84,6 +96,7 @@ extern fn __mul__(a: BigInt, b: BigInt) -> BigInt {
 
 /// 負の無限大方向の除算の商を返します。ゼロ除算は失敗します。
 extern fn __div__(a: BigInt, b: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_12(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::divmod(*a,*b,loc).first);}",
     cpp_name: "rusk_std_big_int_12",
     effects: "checked_read_fresh",
@@ -91,6 +104,7 @@ extern fn __div__(a: BigInt, b: BigInt) -> BigInt {
 
 /// 負の無限大方向の除算の剰余を返します。ゼロ除算は失敗します。
 extern fn __mod__(a: BigInt, b: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_13(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::divmod(*a,*b,loc).second);}",
     cpp_name: "rusk_std_big_int_13",
     effects: "checked_read_fresh",
@@ -98,6 +112,7 @@ extern fn __mod__(a: BigInt, b: BigInt) -> BigInt {
 
 /// BigIntの値を比較します。
 extern fn __eq__(a: BigInt, b: BigInt) -> Bool {
+    depends: "__runtime_big_int__",
     code: "Obj<bool> rusk_std_big_int_14(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<bool>(*a==*b);}",
     cpp_name: "rusk_std_big_int_14",
     effects: "read_fresh",
@@ -105,6 +120,7 @@ extern fn __eq__(a: BigInt, b: BigInt) -> Bool {
 
 /// BigIntの値を比較します。
 extern fn __ne__(a: BigInt, b: BigInt) -> Bool {
+    depends: "__runtime_big_int__",
     code: "Obj<bool> rusk_std_big_int_15(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<bool>(*a!=*b);}",
     cpp_name: "rusk_std_big_int_15",
     effects: "read_fresh",
@@ -112,6 +128,7 @@ extern fn __ne__(a: BigInt, b: BigInt) -> Bool {
 
 /// BigIntの値を比較します。
 extern fn __lt__(a: BigInt, b: BigInt) -> Bool {
+    depends: "__runtime_big_int__",
     code: "Obj<bool> rusk_std_big_int_16(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<bool>(*a<*b);}",
     cpp_name: "rusk_std_big_int_16",
     effects: "read_fresh",
@@ -119,6 +136,7 @@ extern fn __lt__(a: BigInt, b: BigInt) -> Bool {
 
 /// BigIntの値を比較します。
 extern fn __le__(a: BigInt, b: BigInt) -> Bool {
+    depends: "__runtime_big_int__",
     code: "Obj<bool> rusk_std_big_int_17(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<bool>(*a<=*b);}",
     cpp_name: "rusk_std_big_int_17",
     effects: "read_fresh",
@@ -126,6 +144,7 @@ extern fn __le__(a: BigInt, b: BigInt) -> Bool {
 
 /// BigIntの値を比較します。
 extern fn __gt__(a: BigInt, b: BigInt) -> Bool {
+    depends: "__runtime_big_int__",
     code: "Obj<bool> rusk_std_big_int_18(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<bool>(*a>*b);}",
     cpp_name: "rusk_std_big_int_18",
     effects: "read_fresh",
@@ -133,6 +152,7 @@ extern fn __gt__(a: BigInt, b: BigInt) -> Bool {
 
 /// BigIntの値を比較します。
 extern fn __ge__(a: BigInt, b: BigInt) -> Bool {
+    depends: "__runtime_big_int__",
     code: "Obj<bool> rusk_std_big_int_19(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<bool>(*a>=*b);}",
     cpp_name: "rusk_std_big_int_19",
     effects: "read_fresh",
@@ -140,6 +160,7 @@ extern fn __ge__(a: BigInt, b: BigInt) -> Bool {
 
 /// 符号を反転した独立した値を返します。
 extern fn __neg__(a: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_20(Obj<RuskBigInt> a,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(-*a);}",
     cpp_name: "rusk_std_big_int_20",
     effects: "read_fresh",
@@ -147,6 +168,7 @@ extern fn __neg__(a: BigInt) -> BigInt {
 
 /// 同じ値のコピーを返します。
 extern fn __pos__(a: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_21(Obj<RuskBigInt> a,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(*a);}",
     cpp_name: "rusk_std_big_int_21",
     effects: "read_fresh",
@@ -154,6 +176,7 @@ extern fn __pos__(a: BigInt) -> BigInt {
 
 /// 0以外ならtrueです。
 extern fn __bool__(a: BigInt) -> Bool {
+    depends: "__runtime_big_int__",
     code: "Obj<bool> rusk_std_big_int_22(Obj<RuskBigInt> a,[[maybe_unused]] Loc loc){return make_obj<bool>(!a->words.empty());}",
     cpp_name: "rusk_std_big_int_22",
     effects: "read_fresh",
@@ -161,6 +184,7 @@ extern fn __bool__(a: BigInt) -> Bool {
 
 /// 無限長の2の補数としてビット演算します。
 extern fn __bitand__(a: BigInt, b: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_23(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::bitwise(*a,*b,'&'));}",
     cpp_name: "rusk_std_big_int_23",
     effects: "read_fresh",
@@ -168,6 +192,7 @@ extern fn __bitand__(a: BigInt, b: BigInt) -> BigInt {
 
 /// 無限長の2の補数としてビット演算します。
 extern fn __bitor__(a: BigInt, b: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_24(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::bitwise(*a,*b,'|'));}",
     cpp_name: "rusk_std_big_int_24",
     effects: "read_fresh",
@@ -175,6 +200,7 @@ extern fn __bitor__(a: BigInt, b: BigInt) -> BigInt {
 
 /// 無限長の2の補数としてビット演算します。
 extern fn __bitxor__(a: BigInt, b: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_25(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::bitwise(*a,*b,'^'));}",
     cpp_name: "rusk_std_big_int_25",
     effects: "read_fresh",
@@ -182,6 +208,7 @@ extern fn __bitxor__(a: BigInt, b: BigInt) -> BigInt {
 
 /// 無限長の2の補数としてビットを反転します。
 extern fn __bitnot__(a: BigInt) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_26(Obj<RuskBigInt> a,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(-*a-RuskBigInt(1));}",
     cpp_name: "rusk_std_big_int_26",
     effects: "read_fresh",
@@ -189,6 +216,7 @@ extern fn __bitnot__(a: BigInt) -> BigInt {
 
 /// 負のシフト量は方向を反転します。右シフトは算術シフトです。
 extern fn __shl__(a: BigInt, n: Int) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_27(Obj<RuskBigInt> a,Obj<std::int64_t> n,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::shift(*a,*n,true,loc));}",
     cpp_name: "rusk_std_big_int_27",
     effects: "checked_read_fresh",
@@ -196,6 +224,7 @@ extern fn __shl__(a: BigInt, n: Int) -> BigInt {
 
 /// 負のシフト量は方向を反転します。右シフトは算術シフトです。
 extern fn __shr__(a: BigInt, n: Int) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_28(Obj<RuskBigInt> a,Obj<std::int64_t> n,[[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::shift(*a,*n,false,loc));}",
     cpp_name: "rusk_std_big_int_28",
     effects: "checked_read_fresh",
@@ -203,6 +232,7 @@ extern fn __shr__(a: BigInt, n: Int) -> BigInt {
 
 /// 非負のInt指数で累乗します。0の0乗は1です。
 extern fn __pow__(a: BigInt, n: Int) -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_29(Obj<RuskBigInt> a,Obj<std::int64_t> n,[[maybe_unused]] Loc loc){if(*n<0)fail(loc,\"negative integer exponent\");auto result=RuskBigInt(1),base=*a;auto e=static_cast<std::uint64_t>(*n);while(e){if(e&1)result=result*base;e>>=1;if(e)base=base*base;}return make_obj<RuskBigInt>(std::move(result));}",
     cpp_name: "rusk_std_big_int_29",
     effects: "checked_read_fresh",
@@ -210,6 +240,7 @@ extern fn __pow__(a: BigInt, n: Int) -> BigInt {
 
 /// 等しいBigIntに同じハッシュを返します。
 extern fn __hash__(a: BigInt) -> Int {
+    depends: "__runtime_big_int__",
     code: "Obj<std::int64_t> rusk_std_big_int_30(Obj<RuskBigInt> a,[[maybe_unused]] Loc loc){std::size_t h=a->negative;for(auto word:a->words)rusk_hash_combine(h,word);return make_obj<std::int64_t>(static_cast<std::int64_t>(h));}",
     cpp_name: "rusk_std_big_int_30",
     effects: "read_fresh",
@@ -217,6 +248,7 @@ extern fn __hash__(a: BigInt) -> Int {
 
 /// 任意精度整数を十進表記で出力します。
 extern fn __write__(a: BigInt) -> Unit {
+    depends: "__runtime_big_int__",
     code: "void rusk_std_big_int_31(Obj<RuskBigInt> a,[[maybe_unused]] Loc loc){rusk_write(a->str());}",
     cpp_name: "rusk_std_big_int_31",
     effects: "io_write",
@@ -224,6 +256,7 @@ extern fn __write__(a: BigInt) -> Unit {
 
 /// 符号付き十進整数を入力します。
 extern fn __read__() -> BigInt {
+    depends: "__runtime_big_int__",
     code: "Obj<RuskBigInt> rusk_std_big_int_32([[maybe_unused]] Loc loc){return make_obj<RuskBigInt>(RuskBigInt::parse(read_token(loc),loc));}",
     cpp_name: "rusk_std_big_int_32",
     effects: "io_read_fresh",
@@ -268,6 +301,7 @@ fn max(a: BigInt, b: BigInt) -> BigInt {
 
 /// BigIntをその場で更新します。
 extern fn __iadd__(a: BigInt, b: BigInt) -> Unit {
+    depends: "__runtime_big_int__",
     code: "void rusk_std_big_int_33(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){auto value=*a+*b;*a=std::move(value);}",
     cpp_name: "rusk_std_big_int_33",
     effects: "checked_write_first",
@@ -275,6 +309,7 @@ extern fn __iadd__(a: BigInt, b: BigInt) -> Unit {
 
 /// BigIntをその場で更新します。
 extern fn __isub__(a: BigInt, b: BigInt) -> Unit {
+    depends: "__runtime_big_int__",
     code: "void rusk_std_big_int_34(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){auto value=*a-*b;*a=std::move(value);}",
     cpp_name: "rusk_std_big_int_34",
     effects: "checked_write_first",
@@ -282,6 +317,7 @@ extern fn __isub__(a: BigInt, b: BigInt) -> Unit {
 
 /// BigIntをその場で更新します。
 extern fn __imul__(a: BigInt, b: BigInt) -> Unit {
+    depends: "__runtime_big_int__",
     code: "void rusk_std_big_int_35(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){auto value=*a**b;*a=std::move(value);}",
     cpp_name: "rusk_std_big_int_35",
     effects: "checked_write_first",
@@ -289,6 +325,7 @@ extern fn __imul__(a: BigInt, b: BigInt) -> Unit {
 
 /// BigIntをその場で更新します。
 extern fn __idiv__(a: BigInt, b: BigInt) -> Unit {
+    depends: "__runtime_big_int__",
     code: "void rusk_std_big_int_36(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){auto value=RuskBigInt::divmod(*a,*b,loc).first;*a=std::move(value);}",
     cpp_name: "rusk_std_big_int_36",
     effects: "checked_write_first",
@@ -296,6 +333,7 @@ extern fn __idiv__(a: BigInt, b: BigInt) -> Unit {
 
 /// BigIntをその場で更新します。
 extern fn __imod__(a: BigInt, b: BigInt) -> Unit {
+    depends: "__runtime_big_int__",
     code: "void rusk_std_big_int_37(Obj<RuskBigInt> a,Obj<RuskBigInt> b,[[maybe_unused]] Loc loc){auto value=RuskBigInt::divmod(*a,*b,loc).second;*a=std::move(value);}",
     cpp_name: "rusk_std_big_int_37",
     effects: "checked_write_first",

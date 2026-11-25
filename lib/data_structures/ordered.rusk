@@ -6,6 +6,7 @@ fn __ordered_less__<K>(a: K, b: K) -> Bool {
 
 /// キー順に並ぶ集合です。キーの順序は格納中に変更しないでください。
 extern type<K> OrderedSet {
+    depends: "__runtime_ordered__",
     cpp_name: "RuskOrderedSet<{K},@{value_call __ordered_less__<K>(K,K)->Bool}>",
     representation: "set<K>",
 }
@@ -114,16 +115,19 @@ extern fn __iter__<K>(it: OrderedSetIter<K>) -> OrderedSetIter<K> {
 
 /// 次の要素があるか確認します。走査中の構造変更は失敗します。
 extern fn __iter_has_next__<K>(it: OrderedSetIter<K>) -> Bool {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{Bool}> @{fn}(Obj<@{OrderedSetIter<K>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);if(it->finished)return make_obj<bool>(false);rusk_guard_iter(it,loc);if(it->position==it->end){it->finished=true;return make_obj<bool>(false);}return make_obj<bool>(true);}",
 }
 
 /// キーをコピーして次の要素を返します。辞書の値は共有します。
 extern fn __iter_next__<K>(it: OrderedSetIter<K>) -> K {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{K}> @{fn}(Obj<@{OrderedSetIter<K>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);if(it->finished)fail(loc,\"iterator exhausted\");rusk_guard_iter(it,loc);if(it->position==it->end){it->finished=true;fail(loc,\"iterator exhausted\");}RuskHashAdvanceGuard advancing(it->advancing,loc);auto original=*it->position;auto key=@{boxed_call __copy__(K)->K}(original,loc);rusk_guard_iter(it,loc);++it->position;return key;}",
 }
 
 /// 位置を独立にコピーし、走査元を共有します。
 extern fn __copy__<K>(it: OrderedSetIter<K>) -> OrderedSetIter<K> {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{OrderedSetIter<K>}> @{fn}(Obj<@{OrderedSetIter<K>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);rusk_guard_iter(it,loc);if(it->advancing)fail(loc,\"iterator reentered during key copy\");auto r=make_obj<@{OrderedSetIter<K>}>(@{OrderedSetIter<K>}(it->owner));r->finished=it->finished;if(!it->finished)r->position=it->position;return r;}",
     effects: "checked_read_fresh",
     aliases: "return.owner=0.owner",
@@ -140,6 +144,7 @@ fn keys<K>(a: OrderedSet<K>) -> Vec<K> {
 
 /// キー順に並ぶ重複を許す集合です。キーの順序は格納中に変更しないでください。
 extern type<K> MultiSet {
+    depends: "__runtime_ordered__",
     cpp_name: "RuskMultiSet<{K},@{value_call __ordered_less__<K>(K,K)->Bool}>",
     representation: "set<K>",
 }
@@ -258,16 +263,19 @@ extern fn __iter__<K>(it: MultiSetIter<K>) -> MultiSetIter<K> {
 
 /// 次の要素があるか確認します。走査中の構造変更は失敗します。
 extern fn __iter_has_next__<K>(it: MultiSetIter<K>) -> Bool {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{Bool}> @{fn}(Obj<@{MultiSetIter<K>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);if(it->finished)return make_obj<bool>(false);rusk_guard_iter(it,loc);if(it->position==it->end){it->finished=true;return make_obj<bool>(false);}return make_obj<bool>(true);}",
 }
 
 /// キーをコピーして次の要素を返します。辞書の値は共有します。
 extern fn __iter_next__<K>(it: MultiSetIter<K>) -> K {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{K}> @{fn}(Obj<@{MultiSetIter<K>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);if(it->finished)fail(loc,\"iterator exhausted\");rusk_guard_iter(it,loc);if(it->position==it->end){it->finished=true;fail(loc,\"iterator exhausted\");}RuskHashAdvanceGuard advancing(it->advancing,loc);auto original=*it->position;auto key=@{boxed_call __copy__(K)->K}(original,loc);rusk_guard_iter(it,loc);++it->position;return key;}",
 }
 
 /// 位置を独立にコピーし、走査元を共有します。
 extern fn __copy__<K>(it: MultiSetIter<K>) -> MultiSetIter<K> {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{MultiSetIter<K>}> @{fn}(Obj<@{MultiSetIter<K>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);rusk_guard_iter(it,loc);if(it->advancing)fail(loc,\"iterator reentered during key copy\");auto r=make_obj<@{MultiSetIter<K>}>(@{MultiSetIter<K>}(it->owner));r->finished=it->finished;if(!it->finished)r->position=it->position;return r;}",
     effects: "checked_read_fresh",
     aliases: "return.owner=0.owner",
@@ -284,6 +292,7 @@ fn keys<K>(a: MultiSet<K>) -> Vec<K> {
 
 /// キー順に並ぶ辞書です。キーの順序は格納中に変更しないでください。
 extern type<K, V> OrderedDict {
+    depends: "__runtime_ordered__",
     cpp_name: "RuskOrderedDict<{K},{V},@{value_call __ordered_less__<K>(K,K)->Bool}>",
     representation: "dict<K,V>",
 }
@@ -408,16 +417,19 @@ extern fn __iter__<K, V>(it: OrderedDictIter<K, V>) -> OrderedDictIter<K, V> {
 
 /// 次の要素があるか確認します。走査中の構造変更は失敗します。
 extern fn __iter_has_next__<K, V>(it: OrderedDictIter<K, V>) -> Bool {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{Bool}> @{fn}(Obj<@{OrderedDictIter<K,V>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);if(it->finished)return make_obj<bool>(false);rusk_guard_iter(it,loc);if(it->position==it->end){it->finished=true;return make_obj<bool>(false);}return make_obj<bool>(true);}",
 }
 
 /// キーをコピーして次の要素を返します。辞書の値は共有します。
 extern fn __iter_next__<K, V>(it: OrderedDictIter<K, V>) -> Tuple<K, V> {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{Tuple<K,V>}> @{fn}(Obj<@{OrderedDictIter<K,V>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);if(it->finished)fail(loc,\"iterator exhausted\");rusk_guard_iter(it,loc);if(it->position==it->end){it->finished=true;fail(loc,\"iterator exhausted\");}RuskHashAdvanceGuard advancing(it->advancing,loc);auto original=it->position->first;auto key=@{boxed_call __copy__(K)->K}(original,loc);rusk_guard_iter(it,loc);auto value=it->position->second;++it->position;return make_obj<@{Tuple<K,V>}>(@{Tuple<K,V>}{key,value});}",
 }
 
 /// 位置を独立にコピーし、走査元を共有します。
 extern fn __copy__<K, V>(it: OrderedDictIter<K, V>) -> OrderedDictIter<K, V> {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{OrderedDictIter<K,V>}> @{fn}(Obj<@{OrderedDictIter<K,V>}> it,[[maybe_unused]] Loc loc){RuskHashLocation location_tracker(loc);rusk_guard_iter(it,loc);if(it->advancing)fail(loc,\"iterator reentered during key copy\");auto r=make_obj<@{OrderedDictIter<K,V>}>(@{OrderedDictIter<K,V>}(it->owner));r->finished=it->finished;if(!it->finished)r->position=it->position;return r;}",
     effects: "checked_read_fresh",
     aliases: "return.owner=0.owner",

@@ -4,6 +4,7 @@
 
 /// 走査元と変換関数を保持し、走査時に変換結果を返します。
 extern type<I, F, T, R> Mapped {
+    depends: "__runtime_lazy_iterators__",
     cpp_name: "RuskLazyIterator<{I},{F},{R},false>",
     representation: "iterator<R>",
     retains: "source:I;callback:F;cached:R",
@@ -25,6 +26,7 @@ extern fn __iter_has_next__<I, F, T, R>(it: Mapped<I, F, T, R>) -> Bool {
 }
 
 extern fn __iter_next__<I, F, T, R>(it: Mapped<I, F, T, R>) -> R {
+    depends: "__runtime_lazy_iterators__",
     return_abi: "object",
     code: "Obj<@{nonunit R}> @{fn}(Obj<@{Mapped<I,F,T,R>}> it,Loc loc){if(!*@{boxed_call __iter_has_next__(Mapped<I,F,T,R>)->Bool}(it,loc))fail(loc,\"iterator exhausted\");auto value=@{boxed_call __iter_next__(I)->T}(it->source,loc);auto result=@{boxed_invoke F(T)->R}(it->callback,value,loc);rusk_guard_iter(it->source,loc);return result;}",
 }
@@ -44,6 +46,7 @@ extern fn __assign__<I, F, T, R>(target: Mapped<I, F, T, R>, source: Mapped<I, F
 
 /// 走査元と述語を保持し、述語を満たした要素を返します。
 extern type<I, F, T> Filtered {
+    depends: "__runtime_lazy_iterators__",
     cpp_name: "RuskLazyIterator<{I},{F},{T},true>",
     representation: "iterator<T>",
     retains: "source:I;callback:F;cached:T",
@@ -61,6 +64,7 @@ extern fn __iter__<I, F, T>(it: Filtered<I, F, T>) -> Filtered<I, F, T> {
 }
 
 extern fn __iter_has_next__<I, F, T>(it: Filtered<I, F, T>) -> Bool {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{Bool}> @{fn}(Obj<@{Filtered<I,F,T>}> it,Loc loc){if(it->finished)return make_obj<@{Bool}>(false);rusk_guard_iter(it->source,loc);if(it->ready)return make_obj<@{Bool}>(true);while(*@{boxed_call __iter_has_next__(I)->Bool}(it->source,loc)){auto value=@{boxed_call __iter_next__(I)->T}(it->source,loc);auto accepted=@{boxed_invoke F(T)->Bool}(it->callback,value,loc);rusk_guard_iter(it->source,loc);if(*accepted){it->cached=value;it->ready=true;return make_obj<@{Bool}>(true);}}it->finished=true;return make_obj<@{Bool}>(false);}",
 }
 

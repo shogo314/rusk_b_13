@@ -1,5 +1,6 @@
 /// 両端から定数時間で追加・取り出しできる両端キューです。
 extern type<T> Deque {
+    depends: "__runtime_extended_sequences__",
     cpp_name: "RuskDeque<{T}>",
     representation: "vector<T>",
 }
@@ -111,6 +112,7 @@ extern fn clear<T>(a: Deque<T>) -> Unit {
 
 /// 所有元を保持し、構造変更を検出する走査状態です。
 extern type<T> DequeIter<T> {
+    depends: "__runtime_extended_sequences__",
     cpp_name: "RuskLinearIter<@{Deque<T>}>",
     representation: "iterator<T>",
     retains: "owner:Deque<T>",
@@ -132,17 +134,20 @@ extern fn __iter__<T>(it: DequeIter<T>) -> DequeIter<T> {
 
 /// 次の要素があるか調べます。走査中の構造変更は失敗します。
 extern fn __iter_has_next__<T>(it: DequeIter<T>) -> Bool {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{Bool}> @{fn}(Obj<@{DequeIter<T>}> it,[[maybe_unused]] Loc loc){if(it->finished)return make_obj<bool>(false);rusk_guard_iter(it,loc);if(it->index>=it->owner->size()){it->finished=true;return make_obj<bool>(false);}return make_obj<bool>(true);}",
 }
 
 /// 次の要素を返して位置を進めます。終了後の取得は失敗します。
 extern fn __iter_next__<T>(it: DequeIter<T>) -> T {
+    depends: "__runtime_lazy_iterators__",
     return_abi: "object",
     code: "Obj<@{T}> @{fn}(Obj<@{DequeIter<T>}> it,[[maybe_unused]] Loc loc){if(it->finished)fail(loc,\"iterator exhausted\");rusk_guard_iter(it,loc);if(it->index>=it->owner->size()){it->finished=true;fail(loc,\"iterator exhausted\");}return it->owner->at(it->index++);}",
 }
 
 /// 位置をコピーし、所有元を共有する走査状態を返します。
 extern fn __copy__<T>(it: DequeIter<T>) -> DequeIter<T> {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{DequeIter<T>}> @{fn}(Obj<@{DequeIter<T>}> it,[[maybe_unused]] Loc loc){rusk_guard_iter(it,loc);return make_obj<@{DequeIter<T>}>(*it);}",
     effects: "checked_read_fresh",
     aliases: "return.owner=0.owner",
@@ -150,5 +155,6 @@ extern fn __copy__<T>(it: DequeIter<T>) -> DequeIter<T> {
 
 /// 外側の同一性を保ち、走査位置と所有元を更新します。
 extern fn __assign__<T>(a: DequeIter<T>, b: DequeIter<T>) -> Unit {
+    depends: "__runtime_lazy_iterators__",
     code: "void @{fn}(Obj<@{DequeIter<T>}> a,Obj<@{DequeIter<T>}> b,[[maybe_unused]] Loc loc){rusk_guard_iter(b,loc);auto value=*b;*a=std::move(value);}",
 }

@@ -75,12 +75,34 @@ impl Compiler {
             .map(|(ty, _)| ty.as_str())
             .collect();
         body_dependencies(&program.main, &mut functions, &mut types);
+        let previously_emitted_externs = || {
+            self.used
+                .iter()
+                .copied()
+                .filter(|&id| self.functions[id].checked.is_none())
+        };
+        let mut keep_opaque_dependencies = self.has_opaque_symbols();
+        if keep_opaque_dependencies {
+            functions.extend(previously_emitted_externs());
+        }
         while !functions.is_empty() || !types.is_empty() {
             while let Some(id) = functions.pop() {
                 if std::mem::replace(&mut reachable.functions[id], true) {
                     continue;
                 }
                 let function = &program.functions[id];
+                let declaration = &self.functions[id];
+                if !keep_opaque_dependencies
+                    && declaration.checked.is_none()
+                    && declaration.origin == Origin::User
+                    && !self
+                        .native_resource_requirements
+                        .contains_key(&declaration.name.span)
+                {
+                    // Existing opaque C++ can refer to an extern by its C++ name.
+                    keep_opaque_dependencies = true;
+                    functions.extend(previously_emitted_externs());
+                }
                 types.extend(function.params.iter().map(String::as_str));
                 types.push(&function.result);
                 if let Some(body) = &function.body {
@@ -166,7 +188,22 @@ impl Compiler {
         } = self.cpp_reachability(program);
         let functions = self.cpp_functions(&reachable);
         let mut prelude = String::new();
-        for name in &self.symbol_order {
+        let native_functions = self
+            .functions
+            .iter()
+            .enumerate()
+            .filter(|(id, function)| reachable[*id] && function.checked.is_none())
+            .map(|(_, function)| (function.origin, &function.name.span));
+        let native_types = types
+            .iter()
+            .filter_map(|ty| self.native_type_resource_origins.get(*ty))
+            .map(|(origin, span)| (*origin, span));
+        let symbols = self.required_native_symbols(native_functions.chain(native_types));
+        for name in self
+            .symbol_order
+            .iter()
+            .filter(|name| symbols.contains(name.as_str()))
+        {
             prelude += &self.symbols[name].code;
             prelude += "\n";
         }

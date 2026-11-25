@@ -12,6 +12,7 @@ pub(super) struct ExternalType {
     native: String,
     span: Span,
     representation: Option<crate::ir::hir::Type>,
+    origin: Origin,
 }
 
 impl Compiler {
@@ -102,7 +103,12 @@ impl Compiler {
         {
             return Err(name.span.error("duplicate type"));
         }
-        validate(name, properties, &["cpp_name", "representation", "retains"])?;
+        validate(
+            name,
+            properties,
+            &["cpp_name", "representation", "retains", "depends"],
+        )?;
+        self.register_native_resource_requirements(name, properties)?;
         let representation = type_metadata::parse_properties(name, properties, origin)?;
         let pattern = type_patterns::pattern(name, parameters);
         let mut bound = BTreeMap::new();
@@ -122,6 +128,7 @@ impl Compiler {
                 native: property(name, properties, "cpp_name")?,
                 span: name.span.clone(),
                 representation,
+                origin,
             },
         );
         Ok(())
@@ -151,9 +158,11 @@ impl Compiler {
                 "return_abi",
                 "derive",
                 "implicit_call",
+                "depends",
             ],
         )?;
         self.register_implicit_call(name, arguments.len(), properties)?;
+        self.register_native_resource_requirements(name, properties)?;
         if properties.get("return_abi").is_some_and(|v| v != "object") {
             return Err(name
                 .span
@@ -444,6 +453,8 @@ impl Compiler {
                 native?
             };
             self.types.insert(name.text.clone(), native);
+            self.native_type_resource_origins
+                .insert(name.text.clone(), (template.origin, template.span.clone()));
             if let Some(kind) = template.representation {
                 let kind = type_metadata::substitute(&kind, &bindings);
                 self.native_types.insert(

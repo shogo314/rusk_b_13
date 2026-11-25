@@ -32,8 +32,7 @@ pub(super) fn signature(function: &ProgramFunction, context: &Context, optimize:
         })
         .collect::<Vec<_>>();
     params.push("[[maybe_unused]] Loc rusk_call_loc".into());
-    // Rusk bodies and their typed native callers live in the generated
-    // translation unit. Internal linkage lets C++ omit unused library bodies.
+    // Rusk bodies have internal linkage within the generated translation unit.
     let linkage = if function.body.is_some() {
         "[[maybe_unused]] static "
     } else {

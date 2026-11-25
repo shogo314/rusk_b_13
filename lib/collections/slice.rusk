@@ -116,6 +116,7 @@ fn __copy__<S, T>(it: SliceIter<S, T>) -> SliceIter<S, T> {
 
 /// 所有元の構造変更カウンターを取得します。
 extern fn __sequence_version__(a: IntArray) -> Int {
+    depends: "__runtime_extended_sequences__",
     code: "Obj<std::int64_t> rusk_std_slice_1(Obj<RuskIntArray> a,[[maybe_unused]] Loc loc){return make_obj<std::int64_t>(static_cast<std::int64_t>(a->version));}",
     cpp_name: "rusk_std_slice_1",
     effects: "read_fresh",

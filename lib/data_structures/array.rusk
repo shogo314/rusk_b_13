@@ -1,5 +1,6 @@
 /// 長さNを型で区別する固定長配列です。
 extern type<T, N: Int> Array {
+    depends: "__runtime_extended_sequences__",
     cpp_name: "RuskArray<{T},@{N}>",
     representation: "vector<T>",
 }
@@ -67,6 +68,7 @@ fn set<T, N: Int>(a: Array<T, N>, i: Int, value: T) {
 
 /// 所有元を保持し、構造変更を検出する走査状態です。
 extern type<T, N: Int> ArrayIter<T, N> {
+    depends: "__runtime_extended_sequences__",
     cpp_name: "RuskLinearIter<@{Array<T,N>}>",
     representation: "iterator<T>",
     retains: "owner:Array<T,N>",
@@ -88,17 +90,20 @@ extern fn __iter__<T, N: Int>(it: ArrayIter<T, N>) -> ArrayIter<T, N> {
 
 /// 次の要素があるか調べます。走査中の構造変更は失敗します。
 extern fn __iter_has_next__<T, N: Int>(it: ArrayIter<T, N>) -> Bool {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{Bool}> @{fn}(Obj<@{ArrayIter<T,N>}> it,[[maybe_unused]] Loc loc){if(it->finished)return make_obj<bool>(false);rusk_guard_iter(it,loc);if(it->index>=it->owner->size()){it->finished=true;return make_obj<bool>(false);}return make_obj<bool>(true);}",
 }
 
 /// 次の要素を返して位置を進めます。終了後の取得は失敗します。
 extern fn __iter_next__<T, N: Int>(it: ArrayIter<T, N>) -> T {
+    depends: "__runtime_lazy_iterators__",
     return_abi: "object",
     code: "Obj<@{T}> @{fn}(Obj<@{ArrayIter<T,N>}> it,[[maybe_unused]] Loc loc){if(it->finished)fail(loc,\"iterator exhausted\");rusk_guard_iter(it,loc);if(it->index>=it->owner->size()){it->finished=true;fail(loc,\"iterator exhausted\");}return it->owner->at(it->index++);}",
 }
 
 /// 位置をコピーし、所有元を共有する走査状態を返します。
 extern fn __copy__<T, N: Int>(it: ArrayIter<T, N>) -> ArrayIter<T, N> {
+    depends: "__runtime_lazy_iterators__",
     code: "Obj<@{ArrayIter<T,N>}> @{fn}(Obj<@{ArrayIter<T,N>}> it,[[maybe_unused]] Loc loc){rusk_guard_iter(it,loc);return make_obj<@{ArrayIter<T,N>}>(*it);}",
     effects: "checked_read_fresh",
     aliases: "return.owner=0.owner",
@@ -106,5 +111,6 @@ extern fn __copy__<T, N: Int>(it: ArrayIter<T, N>) -> ArrayIter<T, N> {
 
 /// 外側の同一性を保ち、走査位置と所有元を更新します。
 extern fn __assign__<T, N: Int>(a: ArrayIter<T, N>, b: ArrayIter<T, N>) -> Unit {
+    depends: "__runtime_lazy_iterators__",
     code: "void @{fn}(Obj<@{ArrayIter<T,N>}> a,Obj<@{ArrayIter<T,N>}> b,[[maybe_unused]] Loc loc){rusk_guard_iter(b,loc);auto value=*b;*a=std::move(value);}",
 }

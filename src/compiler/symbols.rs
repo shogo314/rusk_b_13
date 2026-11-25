@@ -4,7 +4,29 @@ use super::*;
 pub(super) struct Symbol {
     pub code: String,
     dependencies: BTreeSet<String>,
+    optional: bool,
+    opaque: bool,
     span: Span,
+}
+
+fn symbol_dependencies(name: &Name, text: Option<&str>) -> Result<BTreeSet<String>, String> {
+    let mut dependencies = BTreeSet::new();
+    if let Some(text) = text {
+        for dependency in text.split(',').map(str::trim) {
+            let mut chars = dependency.chars();
+            if !chars
+                .next()
+                .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+                || !chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+            {
+                return Err(name.span.error("invalid native symbol dependency"));
+            }
+            if !dependencies.insert(dependency.to_string()) {
+                return Err(name.span.error("duplicate native symbol dependency"));
+            }
+        }
+    }
+    Ok(dependencies)
 }
 
 impl Compiler {
@@ -12,33 +34,91 @@ impl Compiler {
         &mut self,
         name: &Name,
         properties: &BTreeMap<String, String>,
+        origin: Origin,
     ) -> Result<(), String> {
-        validate(name, properties, &["code", "depends"])?;
-        let mut dependencies = BTreeSet::new();
-        if let Some(text) = properties.get("depends") {
-            for dependency in text.split(',').map(str::trim) {
-                let mut chars = dependency.chars();
-                if !chars
-                    .next()
-                    .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
-                    || !chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
-                {
-                    return Err(name.span.error("invalid native symbol dependency"));
-                }
-                if !dependencies.insert(dependency.to_string()) {
-                    return Err(name.span.error("duplicate native symbol dependency"));
-                }
+        validate(name, properties, &["code", "depends", "optional"])?;
+        let optional = match properties.get("optional").map(String::as_str) {
+            None => false,
+            Some("true") if origin == Origin::StandardLibrary => true,
+            Some(_) => {
+                return Err(name
+                    .span
+                    .error("optional native symbols require the embedded standard library"));
             }
-        }
+        };
+        let dependencies =
+            symbol_dependencies(name, properties.get("depends").map(String::as_str))?;
         let symbol = Symbol {
             code: property(name, properties, "code")?,
             dependencies,
+            optional,
+            opaque: origin == Origin::User,
             span: name.span.clone(),
         };
         if self.symbols.insert(name.text.clone(), symbol).is_some() {
             return Err(name.span.error("duplicate symbol"));
         }
         Ok(())
+    }
+
+    pub(super) fn register_native_resource_requirements(
+        &mut self,
+        name: &Name,
+        properties: &BTreeMap<String, String>,
+    ) -> Result<(), String> {
+        if let Some(text) = properties.get("depends") {
+            let dependencies = symbol_dependencies(name, Some(text))?;
+            self.native_resource_requirements
+                .insert(name.span.clone(), dependencies);
+        }
+        Ok(())
+    }
+
+    pub(super) fn validate_native_resource_requirements(&self) -> Result<(), String> {
+        for (span, dependencies) in &self.native_resource_requirements {
+            if let Some(name) = dependencies
+                .iter()
+                .find(|name| !self.symbols.contains_key(*name))
+            {
+                return Err(span.error(format!("unknown native symbol dependency '{name}'")));
+            }
+        }
+        Ok(())
+    }
+
+    pub(super) fn has_opaque_symbols(&self) -> bool {
+        self.symbols.values().any(|symbol| symbol.opaque)
+    }
+
+    pub(super) fn required_native_symbols<'a>(
+        &'a self,
+        declarations: impl Iterator<Item = (Origin, &'a Span)>,
+    ) -> BTreeSet<&'a str> {
+        // Ordinary user symbols may initialize state. Their bodies, like legacy
+        // user externs, can reference any of the historically available runtime.
+        if self.has_opaque_symbols() {
+            return self.symbols.keys().map(String::as_str).collect();
+        }
+        let mut pending: Vec<_> = self
+            .symbols
+            .iter()
+            .filter(|(_, symbol)| !symbol.optional)
+            .map(|(name, _)| name.as_str())
+            .collect();
+        for (origin, span) in declarations {
+            if let Some(dependencies) = self.native_resource_requirements.get(span) {
+                pending.extend(dependencies.iter().map(String::as_str));
+            } else if origin == Origin::User {
+                return self.symbols.keys().map(String::as_str).collect();
+            }
+        }
+        let mut required = BTreeSet::new();
+        while let Some(name) = pending.pop() {
+            if required.insert(name) {
+                pending.extend(self.symbols[name].dependencies.iter().map(String::as_str));
+            }
+        }
+        required
     }
 
     pub(super) fn prepare_symbols(&mut self) -> Result<(), String> {
@@ -129,7 +209,7 @@ mod tests {
         if let Some(text) = dependencies {
             properties.insert("depends".into(), text.into());
         }
-        compiler.register_symbol(&name, &properties)
+        compiler.register_symbol(&name, &properties, Origin::User)
     }
     #[test]
     fn native_symbols_order_forward_and_diamond_dependencies_once() {

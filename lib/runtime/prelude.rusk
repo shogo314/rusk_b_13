@@ -7,36 +7,44 @@ extern symbol __runtime_collections__ {
     depends: "__core__",
 }
 extern symbol __runtime_lazy_iterators__ {
+    optional: "true",
     code_file: "lazy_iterators.hpp",
     depends: "__runtime_collections__",
 }
 extern symbol __runtime_iter_adapters__ {
+    optional: "true",
     code_file: "iter_adapters.hpp",
     depends: "__runtime_lazy_iterators__",
 }
 extern symbol __runtime_aggregation__ {
+    optional: "true",
     code_file: "aggregation.hpp",
-    depends: "__runtime_iter_adapters__",
+    depends: "__runtime_lazy_iterators__",
 }
 extern symbol __runtime_big_int__ {
+    optional: "true",
     code_file: "big_int.hpp",
     depends: "__runtime_collections__",
 }
 extern symbol __runtime_extended_sequences__ {
+    optional: "true",
     code_file: "extended_sequences.hpp",
-    depends: "__runtime_aggregation__",
+    depends: "__runtime_collections__",
 }
 extern symbol __runtime_ordered__ {
+    optional: "true",
     code_file: "ordered_containers.hpp",
     depends: "__runtime_collections__",
 }
 
 extern symbol __runtime_suffix_array__ {
+    optional: "true",
     code_file: "suffix_array.hpp",
     depends: "__runtime_collections__",
 }
 
 extern symbol __runtime_persistent_segment_tree__ {
+    optional: "true",
     code_file: "persistent_segment_tree.hpp",
     depends: "__core__",
 }

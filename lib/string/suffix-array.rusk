@@ -1,5 +1,6 @@
 /// 接尾辞の先頭位置をバイトの辞書順で返します。
 extern fn suffix_array(text: Str) -> Vec<Int> {
+    depends: "__runtime_suffix_array__",
     cpp_name: "rusk_suffix_array_text",
     effects: "read_fresh",
     code: "Obj<RuskVec<std::int64_t>> rusk_suffix_array_text(Obj<std::string> text, Loc) { return rusk_suffix_array(text->size(), [&](auto i){return static_cast<unsigned char>((*text)[i]);}); }",
@@ -7,6 +8,7 @@ extern fn suffix_array(text: Str) -> Vec<Int> {
 
 /// 整数列の接尾辞の先頭位置を辞書順で返します。
 extern fn suffix_array(values: Vec<Int>) -> Vec<Int> {
+    depends: "__runtime_suffix_array__",
     cpp_name: "rusk_suffix_array_ints",
     effects: "read_fresh",
     code: "Obj<RuskVec<std::int64_t>> rusk_suffix_array_ints(Obj<RuskVec<std::int64_t>> values, Loc) { return rusk_suffix_array(values->size(), [&](auto i){return *(*values)[i];}); }",
@@ -14,6 +16,7 @@ extern fn suffix_array(values: Vec<Int>) -> Vec<Int> {
 
 /// suffixesで隣り合う接尾辞の最長共通接頭辞長をバイト数で返します。
 extern fn lcp_array(text: Str, suffixes: Vec<Int>) -> Vec<Int> {
+    depends: "__runtime_suffix_array__",
     cpp_name: "rusk_lcp_array_text",
     effects: "checked_read_fresh",
     code: "Obj<RuskVec<std::int64_t>> rusk_lcp_array_text(Obj<std::string> text, Obj<RuskVec<std::int64_t>> suffixes, Loc loc) { return rusk_lcp_array(text->size(), [&](auto i){return static_cast<unsigned char>((*text)[i]);}, *suffixes, loc); }",
@@ -21,6 +24,7 @@ extern fn lcp_array(text: Str, suffixes: Vec<Int>) -> Vec<Int> {
 
 /// suffixesで隣り合う整数列の接尾辞の最長共通接頭辞長を返します。
 extern fn lcp_array(values: Vec<Int>, suffixes: Vec<Int>) -> Vec<Int> {
+    depends: "__runtime_suffix_array__",
     cpp_name: "rusk_lcp_array_ints",
     effects: "checked_read_fresh",
     code: "Obj<RuskVec<std::int64_t>> rusk_lcp_array_ints(Obj<RuskVec<std::int64_t>> values, Obj<RuskVec<std::int64_t>> suffixes, Loc loc) { return rusk_lcp_array(values->size(), [&](auto i){return *(*values)[i];}, *suffixes, loc); }",

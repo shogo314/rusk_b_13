@@ -197,3 +197,59 @@ wt used(41);
         );
     }
 }
+
+#[test]
+fn standard_runtime_groups_follow_reachable_declarations() {
+    let idle = Case::new(r#"fn idle()->Vec<Int>{return suffix_array("abc");}"#);
+    let used = Case::new(r#"wt suffix_array("banana")[0];"#);
+    let legacy = Case::new(
+        r#"
+extern symbol zz_legacy {
+    code:"const auto audit_initialized = []{ std::cout << sizeof(RuskBigInt) / sizeof(RuskBigInt) << '\\n'; return true; }();",
+}
+wt 2;
+"#,
+    );
+    for options in [&[][..], &["--no-opt"][..]] {
+        assert!(idle.compile_with_options(options).status.success());
+        let cpp = std::fs::read_to_string(idle.0.join("main.cpp")).unwrap();
+        let (body, _) = cpp.split_once("\n// Rusk source: ").unwrap();
+        assert!(!body.contains("using RuskSuffixIndices"));
+        assert!(!body.contains("struct RuskBigInt"));
+
+        let output = used.run_with_options("", options);
+        assert!(output.status.success());
+        assert_eq!(output.stdout, b"5\n");
+        let cpp = std::fs::read_to_string(used.0.join("main.cpp")).unwrap();
+        let (body, _) = cpp.split_once("\n// Rusk source: ").unwrap();
+        assert!(body.contains("using RuskSuffixIndices"));
+        assert!(!body.contains("struct RuskBigInt"));
+
+        let output = legacy.run_with_options("", options);
+        assert!(output.status.success());
+        assert_eq!(output.stdout, b"1\n2\n");
+    }
+}
+
+#[test]
+fn legacy_native_cpp_can_call_an_extern_by_its_cpp_name() {
+    let case = Case::new(
+        r#"
+extern fn entry(x:Int)->Int {
+    cpp_name:"audit_entry",
+    code:"Obj<std::int64_t> audit_helper(Obj<std::int64_t>,Loc); Obj<std::int64_t> audit_entry(Obj<std::int64_t> x,Loc loc){return audit_helper(x,loc);}",
+}
+extern fn helper(x:Int)->Int {
+    cpp_name:"audit_helper",
+    code:"Obj<std::int64_t> audit_helper(Obj<std::int64_t> x,Loc){return x;}",
+}
+fn idle(x:Int)->Int {return helper(x);}
+wt entry(42);
+"#,
+    );
+    for options in [&[][..], &["--no-opt"][..]] {
+        let output = case.run_with_options("", options);
+        assert!(output.status.success());
+        assert_eq!(output.stdout, b"42\n");
+    }
+}

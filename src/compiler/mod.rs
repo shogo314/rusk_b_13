@@ -131,6 +131,8 @@ pub struct Compiler {
     native_types: BTreeMap<String, type_metadata::Metadata>,
     symbols: BTreeMap<String, symbols::Symbol>,
     symbol_order: Vec<String>,
+    native_resource_requirements: BTreeMap<Span, BTreeSet<String>>,
+    native_type_resource_origins: BTreeMap<String, (Origin, Span)>,
     no_optimization: bool,
     counter: usize,
     used: BTreeSet<usize>,
@@ -189,6 +191,7 @@ impl Compiler {
         {
             let _stage = enter(Stage::TypeChecking);
             self.prepare_bodies(sources)?;
+            self.validate_native_resource_requirements()?;
         }
         let mut hir = {
             let _stage = enter(Stage::Hir);

@@ -148,7 +148,10 @@ impl Compiler {
                     {
                         return Err(n.span.error("duplicate type"));
                     }
-                    validate(n, p, &["cpp_name", "representation", "retains"])?;
+                    validate(n, p, &["cpp_name", "representation", "retains", "depends"])?;
+                    self.register_native_resource_requirements(n, p)?;
+                    self.native_type_resource_origins
+                        .insert(n.text.clone(), (source.origin, n.span.clone()));
                     if self
                         .types
                         .insert(n.text.clone(), property(n, p, "cpp_name")?)
@@ -232,9 +235,11 @@ impl Compiler {
                                         "operation",
                                         "return_abi",
                                         "implicit_call",
+                                        "depends",
                                     ],
                                 )?;
                                 self.register_implicit_call(n, params.len(), p)?;
+                                self.register_native_resource_requirements(n, p)?;
                                 (property(n, p, "cpp_name")?, property(n, p, "code")?, None)
                             }
                             Stmt::UserFunction(_, _, params, _, body) => (
@@ -308,7 +313,7 @@ impl Compiler {
                             checked: None,
                         });
                     }
-                    Stmt::Symbol(n, p) => self.register_symbol(n, p)?,
+                    Stmt::Symbol(n, p) => self.register_symbol(n, p, source.origin)?,
                     _ => {}
                 }
             }
